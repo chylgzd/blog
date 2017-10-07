@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<snippets language="Javascript">
+  <snippet id="function">
+    <text><![CDATA[function ${1:function_name} (${2:first_argument})
+{
+	${0:# body...}
+}]]></text>
+    <description>function</description>
+    <tag>function</tag>
+  </snippet>
+  <snippet id="log">
+    <text><![CDATA[console.log("$1");$0]]></text>
+    <tag>log</tag>
+    <description>console log</description>
+  </snippet>
+  <snippet id="elbyid">
+    <text><![CDATA[document.getElementById("$1");$0]]></text>
+    <tag>elbyid</tag>
+    <description>getElementById</description>
+  </snippet>
+</snippets>

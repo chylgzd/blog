@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Name=node
+# Name[zh_CN]=node
+# Comment=run node here
+# Comment[zh_CN]=run node here
+# Input=nothing
+# Output=output-panel
+# Applicability=all
+# Save-files=nothing
+# Languages=
+
+#name=`echo $GEDIT_CURRENT_DOCUMENT_NAME | cut -d. -f1`
+#dir=$GEDIT_CURRENT_DOCUMENT_DIR
+
+path=$GEDIT_CURRENT_DOCUMENT_PATH
+echo 'node '$path
+node $path

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# [Gedit Tool]
+# Name=electron
+# Name[zh_CN]=electron
+# Comment=run electron here
+# Comment[zh_CN]=run electron here
+# Input=nothing
+# Output=output-panel
+# Applicability=all
+# Save-files=nothing
+# Languages=
+
+DIR=$GEDIT_CURRENT_DOCUMENT_DIR
+cd $DIR
+echo 'electron '$DIR
+electron .

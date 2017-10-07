@@ -1,0 +1,29 @@
+"*":
+  core:
+    audioBeep: false
+    themes: [
+      "one-light-ui"
+      "atom-light-syntax"
+    ]
+  disabledPackages: [
+    "vim-mode"
+    "welcome"
+  ]
+  editor:
+    fontFamily: "Sans"
+    fontSize: 15
+    showIndentGuide: false
+    showInvisibles: false
+    showLineNumbers: true
+  "exception-reporting":
+    userId: "39c9e4cc-278d-cb88-af51-b2cccbe3deba"
+  "gruvbox-plus-syntax":
+    brightness: "Light"
+    contrast: "Soft"
+    variant: "No Dimmed Colors"
+  "highlight-selected":
+    hideHighlightOnSelectedWord: true
+    highlightBackground: true
+    lightTheme: true
+  welcome:
+    showOnStartup: false
