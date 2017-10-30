@@ -306,3 +306,14 @@ css.lang：
 cp /usr/share/gtksourceview-3.0/language-specs/css.lang ~/.local/share/gtksourceview-3.0/language-specs/
 <property name="globs">*.css;*.CSSL;*.scss;*.less</property>
 ```
+
+#### gedit 乱码问题
+```
+gsettings set org.gnome.gedit.preferences.encodings auto-detected "['UTF-8', 'GB18030', 'GB2312', 'GBK', 'BIG5', 'CURRENT', 'UTF-16']"
+gsettings set org.gnome.gedit.preferences.encodings shown-in-menu "['UTF-8', 'GB18030', 'GB2312', 'GBK', 'BIG5', 'CURRENT', 'UTF-16']"
+
+如果提示No such key 'auto-detected' 则用dconf-editor打开路径是不是有一个candidate-encodings
+gsettings set org.gnome.gedit.preferences.encodings candidate-encodings "['UTF-8', 'GB18030', 'GB2312', 'GBK', 'BIG5', 'CURRENT', 'UTF-16']"
+
+```
+
