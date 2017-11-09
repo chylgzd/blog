@@ -101,6 +101,10 @@ docker run 参数：
 --name 容器别名
 --link 外部容器名：内定别名（如gitlab容器配置--link redis:redisio，其中redisio是内部定的，如果没有规定可以随意，而redis是另外的容器）
 -v 外部文件夹目录：内部目录（如tomcat容器配置-v /home/yourname/myapps:/usr/local/tomcat/webapps）
+(
+使用 -v /etc/localtime:/etc/localtime:ro 可以解决 docker容器时间不同步问题 
+docker run --name nginx -p 80:80 -v /home/html:/usr/share/nginx/html -v /home/nginx.conf:/etc/nginx/nginx.conf -v /etc/localtime:/etc/localtime:ro -d daocloud.io/library/nginx:latest
+)
 -p 外部端口：内部端口（如redis容器配置 -p 6379:6379把内部端口映射出来）
 -d 镜像名：镜像版本号
 
