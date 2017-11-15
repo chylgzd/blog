@@ -494,3 +494,20 @@ mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpa
 </settings>
 ```
 
+### maven-archetype
+
+```
+https://maven.apache.org/plugins/index.html
+https://maven.apache.org/archetype/maven-archetype-plugin/
+
+maven-archetype-spring-boot
+
+https://github.com/making/spring-boot-blank
+
+mvn archetype:generate -DarchetypeGroupId=am.ik.archetype -DarchetypeArtifactId=spring-boot-blank-archetype -DarchetypeVersion=1.0.6 -DgroupId=com.example -DartifactId=hajiboot -Dversion=1.0.0-SNAPSHOT
+
+如果无法成功可先清理以下两个文件夹：
+/repository/org/apache/maven/archetypes/maven-archetype-webapp/
+/repository/org/apache/maven/plugins/maven-archetype-plugin/
+```
+
