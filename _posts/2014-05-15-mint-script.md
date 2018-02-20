@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mint各种小脚本
-category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人]
+category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev]
 comments: false
 ---
 
@@ -146,11 +146,52 @@ start_springboot $1 $2
 
 ```
 
-### 更简单的杀死所有搜索到的进程方法
+#### 更简单的杀死所有搜索到的进程方法
 ```
 （grep -v grep排除自身查找的进程）
 
 ps -ef |grep springboot | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/null 2>&1
 
 ```
+
+#### ss-libev + obfs-local：
+
+```
+1】https://github.com/shadowsocks/shadowsocks-libev#debian--ubuntu
+
+sudo apt-get install software-properties-common -y
+sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev -y
+sudo apt-get update
+sudo apt install shadowsocks-libev
+
+2】https://github.com/shadowsocks/simple-obfs
+
+cd ~/programming/project/a.yitianjianss.com/
+sudo apt-get install --no-install-recommends build-essential autoconf libtool libssl-dev libpcre3-dev libev-dev asciidoc xmlto automake
+git clone https://github.com/shadowsocks/simple-obfs.git
+cd simple-obfs
+git submodule update --init --recursive
+./autogen.sh
+./configure && make
+sudo make install
+
+3】http://shadowsocks.org/en/config/quick-guide.html
+
+~/programming/project/a.yitianjianss.com/yitianjianss-config.json：
+{
+    "server":"xx.xx.xx",
+    "server_port":1234,
+    "local_port":8087,
+    "password":"abc123",
+    "timeout":600,
+    "method":"aes-256-cfb"
+}
+
+4】Usage
+
+ss-local -c yitianjianss-config.json --plugin obfs-local --plugin-opts "obfs=http;obfs-host=xx.xx"
+```
+
+
+
 
