@@ -18,6 +18,8 @@ icon: bookmark
 
 * [tutorialspoint](https://www.tutorialspoint.com/unix/)
 
+* [useful-scripts-java](https://github.com/oldratlee/useful-scripts/blob/master/docs/java.md)
+
 ## 文档API前端工具相关
 
 * [A simulation data generator Mock.js](http://mockjs.com/)
