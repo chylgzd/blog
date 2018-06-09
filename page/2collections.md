@@ -248,3 +248,26 @@ icon: bookmark
 
  * [chrome](/blog/download/chrome.zip)
 
+## 持续集成代码发布相关
+
+* [jenkins](https://github.com/jenkinsci/jenkins)
+
+* [walle](https://github.com/meolu/walle-web)
+
+* [gopub](https://github.com/linclin/gopub)
+
+* [codepub](https://github.com/bzppx/bzppx-codepub)
+
+* [strider](https://github.com/Strider-CD/strider)
+
+* [teletraan](https://github.com/pinterest/teletraan)
+
+* [travis-ci](https://github.com/travis-ci/travis-ci)
+
+    Free continuous integration platform for GitHub projects
+
+* [HotswapAgent](https://github.com/HotswapProjects/HotswapAgent)
+
+    Java unlimited redefinition of classes at runtime
+
+
