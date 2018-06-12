@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Nginx配置文件备份
+title: Nginx配置文件相关
 category: [Linux,Nginx]
 comments: false
 ---
@@ -8,8 +8,25 @@ comments: false
 * content
 {:toc}
 
+#### 安装
+
 ```
-nginx -s stop
+http://nginx.org/en/download.html
+http://nginx.org/en/linux_packages.html#stable
+(node-nginx ->  hiproxy -> https://github.com/hiproxy/hiproxy/blob/master/README-zh.md)
+
+wget http://nginx.org/download/nginx-1.14.0.tar.gz
+wget https://ftp.pcre.org/pub/pcre/pcre-8.41.tar.gz
+
+cd /data/nginx-1.14.0/src
+
+./configure --prefix=/data/nginx --with-http_stub_status_module --with-http_ssl_module --with-pcre=/data/src/pcre-8.41 --with-openssl=/data/src/openssl-1.1.0g --with-http_gzip_static_module
+
+make & make install
+
+ln -s /data/nginx/sbin/nginx /usr/local/bin/nginx
+
+nginx -s stop or reload
 nginx
 ```
 
@@ -101,7 +118,7 @@ server
 server {
     listen       80;
     server_name hello.com;
- 	location / {
+    location / {
 		index index.jsp index.html index.htm;
 		proxy_pass http://127.0.0.1:8080;
 		include proxy.conf;
@@ -146,3 +163,21 @@ server {
 hello.com.key
 hello.com_bundle.crt
 ```
+
+#### 用户密码认证页面 location /auth 
+```
+location /auth {
+	auth_basic "secret";
+	auth_basic_user_file /data/nginx/conf/passwd.db;
+	proxy_pass http://127.0.0.1:8081;
+	proxy_set_header   Host             $host;
+	proxy_set_header   X-Real-IP        $remote_addr;
+	proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+}
+passwd.db的生成：
+wget http://trac.edgewall.org/export/10770/trunk/contrib/htpasswd.py
+chmod 700 htpasswd.py
+./htpasswd.py -c -b passwd.db root 123456
+```
+
+

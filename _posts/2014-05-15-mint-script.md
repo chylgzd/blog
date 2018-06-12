@@ -192,6 +192,45 @@ sudo make install
 ss-local -c yitianjianss-config.json --plugin obfs-local --plugin-opts "obfs=http;obfs-host=xx.xx"
 ```
 
+####  查看系统资源占用
+
+```
+大于100M的文件：
+find / -size +100M -exec ls -lh {} \;
+
+内存占用前10：
+ps aux|head -1;ps aux|grep -v PID|sort -rn -k +4|head
+
+CPU占用前10：
+ps aux|head -1;ps aux|grep -v PID|sort -rn -k +3|head
+
+```
+
+####  sudo systemctl 免密码
+
+```
+sudo visudo
+
+%wheel  ALL=(ALL)  ALL后面新增：
+myuser  ALL=(ALL)  NOPASSWD: /usr/bin/systemctl
+
+vim /etc/systemd/system/mytest.service：
+[Unit]
+Description=mytest
+After=syslog.target
+
+[Service]
+User=myuser
+Group=myuser
+ExecStart=/data/jdk/bin/java -Dspring.profiles.active=prod  -jar /data/deploy/mytest-2.12.jar
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl start/stop mytest.service
+
+```
 
 
 

@@ -10,6 +10,16 @@ comments: false
 
 具体安装请参考docker安装软件相关
 
+### 简单删除队列
+
+```bash
+删除/下所有队列
+rabbitmqctl list_queues | grep 0 | awk '{print $1}' | xargs -I qn rabbitmqadmin -uroot -p123456 delete queue name=qn
+
+删除xxx-开头的队列
+rabbitmqctl list_queues | grep 0 | awk '{print $1}' | grep xxx-* | xargs -I qn rabbitmqadmin -uroot -p123456 delete queue name=qn
+```
+
 ### 批量清空队列脚本
 
 ```
@@ -91,4 +101,5 @@ do
  fi
 done
 ```
- 
+
+

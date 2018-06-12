@@ -244,6 +244,8 @@ icon: bookmark
 
     [sq290w64](/blog/download/sq290w64.7z)
 
+    [sdsx263.dmg](/blog/download/osx/sdsx263.dmg)
+
     [gz78](https://c.yitianjianss.com)  ,  [gz78](https://f.aiguobit.com/users/login)
 
  * [chrome](/blog/download/chrome.zip)

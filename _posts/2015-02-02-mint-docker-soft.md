@@ -32,6 +32,19 @@ https://github.com/rabbitmq/rabbitmq-java-client
 
 https://yq.aliyun.com/articles/57839
 
+### 快速执行安装
+
+```
+docker run --name mysql5 -p 3306:3306  -e MYSQL_ROOT_PASSWORD=123456 -d daocloud.io/library/mysql:5.7.4
+
+docker run --name rbt --hostname localhost -p 15672:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=root -e RABBITMQ_DEFAULT_PASS=123456 -d daocloud.io/rabbitmq:3-management
+
+docker run --name redis -p 6379:6379 -d daocloud.io/library/redis:3.2.9 redis-server --appendonly yes
+
+docker run --name es2 -p 9200:9200 -p 9300:9300 -d index.tenxcloud.com/docker_library/elasticsearch elasticsearch -Des.node.name="my-application"
+
+```
+
 ### 安装 MySQL
 
 ```
@@ -86,11 +99,13 @@ docker run --name postgresql -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASS
 
 ```
 
-### 安装 Elasticsearch
+### 安装 Elasticsearch2.x
 
 ```
+https://www.elastic.co/guide/en/elasticsearch/reference/2.4/setup.html
+
 下载 Elasticsearch：
-docker pull elasticsearch:latest
+docker pull elasticsearch:2.4
 
 启动 elasticsearch：
 docker run --name search  -p 9200:9200  -d elasticsearch elasticsearch -Des.node.name="TestNode"
@@ -106,6 +121,37 @@ curl -XPUT 'http://localhost:9200/test1/table1/1' -d '{ "first":"dewmobile", "la
 访问：
 http://localhost:9200/test1/table1/1
 
+```
+
+### 安装 Elasticsearch5.x
+
+```
+https://www.elastic.co/guide/en/elasticsearch/reference/5.6/install-elasticsearch.html
+
+docker pull docker.elastic.co/elasticsearch/elasticsearch:5.6.9
+
+/data/es5/config/elasticsearch.yml：
+# cluster.name
+cluster.name: test-name
+# network.host
+network.host: 0.0.0.0
+# security
+xpack.security.enabled: false
+# cors
+http.port: 9200
+http.cors.allow-origin: "*"
+http.cors.enabled: true
+http.cors.allow-headers : X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+http.cors.allow-credentials: true
+
+docker run --name es5 -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -v /data/es5/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -d docker.elastic.co/elasticsearch/elasticsearch:5.6.9
+
+The Missing Web UI for Elasticsearch：
+https://github.com/appbaseio/dejaVu
+installed as a chrome extension：
+https://chrome.google.com/webstore/detail/dejavu/jopjeaiilkcibeohjdmejhoifenbnmlh
+
+输入http://localhost:9200获取下拉列表
 ```
 
 ### 安装 Redis
@@ -125,6 +171,11 @@ http://localhost:4567
 
 通过RedisClient.jar访问：
 新建server，密码空，本地IP端口4567填好即可
+
+其它命令：
+redis-server --protected-mode no &
+/etc/init.d/redis-server restart
+redis-cli shutdown
 ```
 
 ### 通过nodejs应用程序访问Docker内 Redis
