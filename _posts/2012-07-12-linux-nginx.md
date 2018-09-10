@@ -108,6 +108,35 @@ http {
 
 #### /alidata/server/nginx/conf/vhosts/hello.com.conf
 ```conf
+
+# 禁止通过ip访问
+server {
+  listen 80 default;
+  server_name _;
+  return 403;
+}
+
+# 通用tomcat/jsp
+server {
+    listen       80;
+    server_name xx.com www.xx.com;
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    location ~ \.(gif|jpg|jpeg|png|ico|rar|css|js|zip|txt|flv|swf|doc|ppt|xls|pdf)$ {
+  		root /home/xx/apache-tomcat-8.5.33/webapps/ROOT;
+  		access_log off;
+      	expires 1d;
+    }
+    location / {
+                index index.jsp index.html index.htm;
+                proxy_pass http://127.0.0.1:8080;
+                proxy_set_header   Host             $host;
+                proxy_set_header   X-Real-IP        $remote_addr;
+                proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    }
+}
+# hello
 server
 {
 	listen 80;
