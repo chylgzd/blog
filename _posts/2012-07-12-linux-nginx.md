@@ -74,6 +74,7 @@ http {
 	server_names_hash_bucket_size 128;
 	client_header_buffer_size 32k;
 	large_client_header_buffers 4 32k;
+	#最大上传8M
 	client_max_body_size 8m;
 
 	sendfile on;
