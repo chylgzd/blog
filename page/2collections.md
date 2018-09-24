@@ -249,6 +249,7 @@ icon: bookmark
     [gz78](https://c.yitianjianss.com)  ,  [gz78](https://f.aiguobit.com/users/login)
 
  * [chrome](/blog/download/chrome.zip)
+    [chrome-plugin-proxy](/blog/download/chrome/ubtsdsSwitchyOmegaChrom.tar.gz)
 
 ## 持续集成代码发布相关
 
