@@ -212,15 +212,18 @@ client.hkeys("hash key", function (err, replies) {
 
 ```
 下载 gitlab：
-docker pull sameersbn/gitlab:latest
+docker pull sameersbn/gitlab:11.3.0
 
-启动 gitlab：
+启动 gitlab（如果有nginx代理到10080端口，则GITLAB_PORT=80）：
 docker run --name gitlab -d \
     --link postgresql:postgresql --link redis:redisio \
     --publish 10022:22 --publish 10080:80 \
-    --env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
-    --env 'GITLAB_SECRETS_DB_KEY_BASE=aaa0bbb1ccc2ddd3eee4' \
-    sameersbn/gitlab:latest
+    --env 'GITLAB_HOST=git.yourdomain.com' --env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
+    --env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
+    --env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
+    --env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
+	--volume /data/docker/gitlabdata:/home/git/data \
+    sameersbn/gitlab:11.3.0
 
 用浏览器访问：
 http://localhost:10080
@@ -232,6 +235,18 @@ ssh-keygen -t rsa -C "admin@example.com"
 复制生成的keygen到Add an SSH key即可:
 cat ~/.ssh/id_rsa.pub
 
+查看情况：docker inspect gitlab
+
+进入容器使用：docker exec -it gitlab bash
+（如果GITLAB_HOST有新的域名需要更换）：
+vim /etc/docker-gitlab/runtime/env-defaults
+GITLAB_HOST=${GITLAB_HOST:-git.yourdomain.com}
+
+（如果有nginx代理到10080需要更换gitlab端口80）
+vim /etc/docker-gitlab/runtime/config/gitlabhq/gitlab.yml
+## GitLab settings
+gitlab:
+	port:80
 ```
 
 ### 安装 RabbitMQ
