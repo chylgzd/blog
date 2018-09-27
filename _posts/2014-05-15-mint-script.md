@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mint各种小脚本
-category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev]
+category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev,crontab]
 comments: false
 ---
 
@@ -231,6 +231,41 @@ WantedBy=multi-user.target
 sudo systemctl start/stop mytest.service
 
 ```
+
+####  定时任务crontab脚本
+
+```
+vim /etc/crontab
+
+59 23 * * * root /xx/shell/test.sh
+
+/etc/rc.d/init.d/crond restart
+
+crontab -l
+crontab -e
+```
+
+####  切分日志文件脚本（配合crontab定时执行）
+
+```
+#!/bin/bash
+thedate=`date --rfc-3339=date`
+predate=`date +%Y-%m-%d --date="-7 day"`
+
+rmfile="/xxx/xxx/apache-tomcat-8.5.33/logs/catalina-daemon.${predate}.out"
+outfile="/xxx/xxx/apache-tomcat-8.5.33/logs/catalina-daemon.out"
+if [ -f ${rmfile} ];then
+   rm -f ${rmfile}
+fi
+
+if [ -f ${outfile} ];then
+   cp ${outfile} /xxx/xxx/apache-tomcat-8.5.33/logs/catalina-daemon.${thedate}.out
+   echo "" > ${outfile}
+fi
+
+exit 0
+```
+
 
 
 
