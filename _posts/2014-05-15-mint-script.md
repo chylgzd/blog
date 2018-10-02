@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mint各种小脚本
-category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev,crontab]
+category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev,crontab,虚拟机,virtualbox]
 comments: false
 ---
 
@@ -265,6 +265,50 @@ fi
 
 exit 0
 ```
+
+####  LinuxMint下安装虚拟机virtualbox
+
+```
+更多参考：https://www.virtualbox.org/wiki/Linux_Downloads
+先清理其它vm版本以免冲突出错The VirtualBox kernel modules do not match this version of VirtualBox：
+sudo apt-get autoremove open-vm-tools open-vm-tools-desktop open-vm-tools-dkms --purge
+
+vim /etc/apt/sources.list
+deb https://download.virtualbox.org/virtualbox/debian xenial contrib
+wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
+wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install virtualbox-5.2
+
+重启快捷键系统进入bois设置Secure Boot set disable
+（没有出现grub界面的先设置等待选择时间
+vim /etc/default/grub
+GRUB_DEFAULT=0
+#GRUB_HIDDEN_TIMEOUT=0
+#GRUB_HIDDEN_TIMEOUT_QUIET=true
+GRUB_TIMEOUT=10
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+GRUB_CMDLINE_LINUX=""
+）
+按F2进入bois(有些直接在grub选择system setup)
+function key behavior的multimedia key first,改成function key first
+修改不了的时候先设置supervisor密码
+BIOS set supervisor password save && 重启
+重新设置Secure Boot set disable保存重启
+
+进入界面下载添加xp.iso纯净版：
+http://xxx.74.xdowns.com/WindowsXP-SP3-VOLMSDN.rar
+MRX3F-47B9T-2487J-KWKMF-RPWBY
+
+远程计算机需要网络级别身份验证错误：
+1	自动升级系统到最新SP3补丁包
+2	regedit -> HKEY_LOCAL_MACHINE＼SYSTEM＼CurrentControlSet＼Control＼Lsa”，编辑Security Packages列表增加tspkg字符　　 
+4	regedit -> HKEY_LOCAL_MACHINE＼SYSTEM＼CurrentControlSet＼Control＼SecurityProviders”，编辑SecurityProviders在末端中添加, credssp.dll（注意空格）　 
+5	重启系统后重新远程连接mstsc即可
+
+```
+
 
 
 

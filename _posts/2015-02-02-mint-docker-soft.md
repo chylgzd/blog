@@ -208,9 +208,12 @@ client.hkeys("hash key", function (err, replies) {
 
 ```
 
-### 安装 GitLab（依赖于已经安装好了的postgresql和redis）
+### 安装 GitLab
 
 ```
+（依赖于已经安装好了的postgresql和redis）
+更多参数配置参考：https://github.com/sameersbn/docker-gitlab
+
 下载 gitlab：
 docker pull sameersbn/gitlab:11.3.0
 
@@ -218,7 +221,7 @@ docker pull sameersbn/gitlab:11.3.0
 docker run --name gitlab -d \
     --link postgresql:postgresql --link redis:redisio \
     --publish 10022:22 --publish 10080:80 \
-    --env 'GITLAB_HOST=git.yourdomain.com' --env 'GITLAB_PORT=10080' --env 'GITLAB_SSH_PORT=10022' \
+    --env 'GITLAB_HOST=git.yourdomain.com' --env 'GITLAB_PORT=80' --env 'GITLAB_SSH_PORT=10022' \
     --env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
@@ -233,9 +236,14 @@ http://localhost:10080
 登陆进去后创建工程，参考（http://localhost:10080/help/ssh/README）完成SSH Keys添加：
 ssh-keygen -t rsa -C "admin@example.com"
 复制生成的keygen到Add an SSH key即可:
-cat ~/.ssh/id_rsa.pub
+cat ~/.ssh/id_rsa.pub 
 
-查看情况：docker inspect gitlab
+查看git版本及文件存储相关情况：docker inspect gitlab
+```
+
+#### 修改git默认域名与端口
+```
+启动参数GITLAB_HOST和GITLAB_PORT已经设置过需要变更：
 
 进入容器使用：docker exec -it gitlab bash
 （如果GITLAB_HOST有新的域名需要更换）：
@@ -248,6 +256,18 @@ vim /etc/docker-gitlab/runtime/config/gitlabhq/gitlab.yml
 gitlab:
 	port:80
 ```
+
+#### docker迁移根目录需要注意的问题
+```
+通过docker inspect gitlab查找默认_data进行打包备份
+mv  /var/lib/docker/*  /data/docker/root/
+chown -R root:root  /data/docker/root
+chmod 777 -R /data/docker/root
+mount --bind  /data/docker/root  /var/lib/docker
+解压备份_data目录到/home/git/data对应--volume映射目录下
+如果出现gitlab相关sudouser.so问题，重新安装gitlab镜像即可
+```
+
 
 ### 安装 RabbitMQ
 

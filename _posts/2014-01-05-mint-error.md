@@ -86,4 +86,14 @@ https://ubuntuforums.org/showthread.php?t=1490833
 sudo rfkill list all
 ```
 
+#### vim 乱码问题
+```
+vim ~/.vimrc （没有就新建）加入：
+
+set fileencodings=utf-8,gb2312,gb18030,gbk,ucs-bom,cp936,latin1
+set enc=utf8
+set fencs=utf8,gbk,gb2312,gb18030
+
+```
+
 

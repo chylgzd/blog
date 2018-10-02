@@ -373,10 +373,10 @@ mvn jetty:run 即可运行web工程
     </mirror>
      -->
      <mirror>
-		<id>nexus-ibiblio</id>
+		<id>nexus-Jcenter</id>
 		<mirrorOf>central</mirrorOf>
-		<name>nexus-ibiblio</name>
-		<url>http://mirrors.ibiblio.org/pub/mirrors/maven2/</url>
+		<name>nexus-Jcenter</name>
+		<url>http://jcenter.bintray.com/</url>
 	</mirror>
   </mirrors>
   
@@ -396,7 +396,7 @@ mvn jetty:run 即可运行web工程
 			<repository>
 				<id>profile-nexus-aliyun</id>
 				<name>nexus-aliyun</name>
-				<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+				<url>https://maven.aliyun.com/repository/public/</url>
 				<releases>
 					<enabled>true</enabled>
 				</releases>
@@ -409,7 +409,7 @@ mvn jetty:run 即可运行web工程
 			<pluginRepository>
 				<id>profile-nexus-aliyun</id>
 				<name>nexus-aliyun</name>
-				<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+				<url>https://maven.aliyun.com/repository/public/</url>
 				<releases>
 					<enabled>true</enabled>
 				</releases>
@@ -509,5 +509,22 @@ mvn archetype:generate -DarchetypeGroupId=am.ik.archetype -DarchetypeArtifactId=
 如果无法成功可先清理以下两个文件夹：
 /repository/org/apache/maven/archetypes/maven-archetype-webapp/
 /repository/org/apache/maven/plugins/maven-archetype-plugin/
+```
+
+### maven相关网站
+
+```
+仓库镜像：
+http://maven.aliyun.com/mvn/view
+
+Jcenter http://jcenter.bintray.com/
+Jboss http://repository.jboss.org/nexus/content/groups/public/
+Maven Central http://repo2.maven.org/maven2/
+Ibiblio http://mirrors.ibiblio.org/pub/mirrors/maven2
+UK Maven http://uk.maven.org/maven2/
+
+搜索：
+https://search.maven.org/
+https://mvnrepository.com/
 ```
 

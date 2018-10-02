@@ -94,6 +94,58 @@ sudo apt-get autoremove --purge docker-engine
 rm -rf /var/lib/docker
 ```
 
+#### 国内镜像加速
+
+```
+登陆https://cr.console.aliyun.com
+zfd打开镜像加速器会有提示：
+
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://xxxx.mirror.aliyuncs.com"]
+}
+EOF
+
+sudo systemctl daemon-reload
+
+sudo systemctl restart docker
+
+```
+
+#### 根目录/var/lib/docker迁移到其它挂载数据盘
+
+```
+service docker stop
+
+挂载数据磁盘到data目录：
+mkdir -p /data
+1. fdisk -l 找出所有磁盘及空闲磁盘比如/dev/vdb
+2. 格式化该磁盘mkfs -t ext4 /dev/vdb
+3. 创建mkdir -p /data数据文件夹
+4. 挂载磁盘 mount /dev/vdb /data
+5. 系统级重启挂载: 
+vim /etc/fstab
+/dev/vdb		/data		ext4		defaults 	0 0
+
+迁移到/data/docker/root/目录下：
+mkdir -p /data/docker/root 
+mv  /var/lib/docker/*  /data/docker/root/
+chown -R root:root  /data/docker/root
+chmod 777 -R /data/docker/root
+
+临时邦定文件夹，重启会失效：
+mount --bind  /data/docker/root  /var/lib/docker
+
+service docker start
+
+系统级邦定文件夹，重启后不失效：
+vim /etc/fstab
+/data/docker/root /var/lib/docker                 none    bind        0 0
+
+
+```
+
+
 ###  Docker命令使用：
 
 ```
@@ -119,6 +171,9 @@ docker rmi 镜像ID
 查看所有容器状态：
 docker ps -a
 
+查看某容器相关文件存储版本情况：
+docker inspect gitlab
+
 查看某容器日志：
 docker logs redis-web
 
@@ -136,10 +191,17 @@ docker rm redis-web
 查看某个容器的全部环境变量：
 docker exec jenkins-web env
 
+复制docker容器内文件到宿主机(docker ps -a查看容器id)：
+docker cp 容器ID:/etc/profile.d/env.sh /home/soft/download
+
 执行某个容器内的命令：
 docker exec -it jenkins-web cat /var/jenkins_home/secrets/initialAdminPassword
 
-进入某个容器，先查找出容器的进程PID，再用系统命令nsenter连接即可，连上后就如同操作linux：
+进入某个容器1：
+docker exec -it gitlab bash
+
+进入某个容器2：
+先查找出容器的进程PID，再用系统命令nsenter连接即可，连上后就如同操作linux：
 使用
 docker top redis-web
 或者使用(.State.Pid)
