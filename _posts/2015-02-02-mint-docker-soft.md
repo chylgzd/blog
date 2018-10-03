@@ -99,6 +99,117 @@ docker run --name postgresql -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASS
 
 ```
 
+### 安装 Oracle
+
+```
+更多参考：https://dev.aliyun.com/detail.html?spm=5176.1972343.2.8.E6Cbr1&repoId=1969
+
+mkdir -p /data/dev/oracle/dump_dir
+mkdir -p /data/dev/oracle/data_dir
+
+docker pull registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
+docker run --name oracle_11g -p 1521:1521 -v /data/dev/oracle/dump_dir:/home/oracle/app/oracle/oradata/dump_dir -v /data/dev/oracle/data_dir:/home/oracle/app/oracle/oradata/data_dir -d registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
+
+docker exec -it oracle_11g bash
+source /home/oracle/.bash_profile
+cd /home/oracle/app/oracle/oradata
+su root
+helowin
+chown -R oracle:oinstall dump_dir data_dir
+
+```
+#### 创建用户表空间
+
+```
+docker exec -it oracle_11g bash
+source /home/oracle/.bash_profile
+sqlplus /nolog
+SQL> connect /as sysdba;
+SQL> CREATE USER mytestusr IDENTIFIED BY 123456;
+SQL> GRANT connect,resource,dba,UNLIMITED TABLESPACE TO mytestusr;
+SQL> GRANT debug any procedure, debug connect session TO mytestusr;
+
+SQL> CREATE OR REPLACE DIRECTORY dump_dir AS '/home/oracle/app/oracle/oradata/dump_dir';
+SQL> GRANT READ, WRITE ON DIRECTORY  dump_dir TO  mytestusr;
+
+SQL> CREATE TABLESPACE tbs_mytestusr DATAFILE '/home/oracle/app/oracle/oradata/data_dir/tbs_mytest.dbf' SIZE 10G AUTOEXTEND ON NEXT 500M MAXSIZE UNLIMITED;
+宿主机连接：
+rlwrap sqlplus64 mytestusr/123456@//127.0.0.1:1521/helowin
+
+-- 查询所有锁的sid, pid等信息
+SELECT 
+  l.inst_id, 
+  SUBSTR(L.ORACLE_USERNAME, 1, 8) ORA_USER, 
+  SUBSTR(L.SESSION_ID, 1, 3) SID, 
+  S.serial#, SUBSTR(O.OWNER||'.'||O.OBJECT_NAME, 1, 40) OBJECT,
+  P.SPID OS_PID, 
+  DECODE(
+    L.LOCKED_MODE, 0, 'NONE', 1, 'NULL', 
+    2, 'ROW SHARE', 3, 'ROW EXCLUSIVE', 
+    4, 'SHARE', 5, 'SHARE ROW EXCLUSIVE', 
+    6, 'EXCLUSIVE', NULL
+  ) LOCK_MODE 
+FROM 
+  sys.GV_$LOCKED_OBJECT L, 
+  DBA_OBJECTS O, 
+  sys.GV_$SESSION S, 
+  sys.GV_$PROCESS P 
+WHERE 
+  L.OBJECT_ID = O.OBJECT_ID 
+  AND l.inst_id = s.inst_id 
+  AND L.SESSION_ID = S.SID 
+  AND s.inst_id = p.inst_id 
+  AND S.PADDR = P.ADDR(+) 
+ORDER BY 
+  l.inst_id;
+
+-- alter system kill session '145,20723';
+```
+
+#### 备份
+
+```
+docker exec -it oracle_11g bash
+source /home/oracle/.bash_profile
+
+expdp mytestusr/123456@helowin compression=all schemas=mytestusr directory=dumpdir dumpfile=FULL_BACKUP%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.dmp logfile=expdp_%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.log
+
+```
+
+#### 导入expdp数据库
+
+```
+把备份文件上传到宿主机dump_dir目录：/data/dev/oracle/dump_dir/expdp_mytestusr_full.dmp
+
+查看与要导入的数据库字符串是否一致,不一致需要修改字符串一致：
+docker exec -it oracle_11g bash
+source /home/oracle/.bash_profile
+sqlplus /nolog
+SQL> connect /as sysdba;
+SQL> select * from V$NLS_PARAMETERS;
+如果线上字符串为ZHS16GBK本地不是则需要修改本地docker数据库：
+SQL> SHUTDOWN IMMEDIATE;
+SQL> STARTUP MOUNT;
+SQL> ALTER SYSTEM ENABLE RESTRICTED SESSION;
+SQL> ALTER SYSTEM SET JOB_QUEUE_PROCESSES=0;
+SQL> ALTER SYSTEM SET AQ_TM_PROCESSES=0;
+SQL> ALTER DATABASE OPEN;
+SQL> ALTER DATABASE ﻿CHARACTER SET ZHS16GBK ;
+ERROR at line 1:
+ORA-02231: missing or invalid option to ALTER DATABASE
+SQL> ALTER DATABASE CHARACTER SET INTERNAL_USE ZHS16GBK;
+Database altered.
+SQL> exit;
+
+全部导入
+impdp 'mytestusr/123456@helowin' full=Y directory=dump_dir dumpfile=expdp_mytestusr_full.dmp logfile=impdp.log TABLE_EXISTS_ACTION=REPLACE
+或
+impdp mytestusr/123456@helowin directory=dump_dir dumpfile=expdp_mytestusr_full.dmp tables=mytestusr.tb_test remap_schema=mytestusr_prod:mytestusr logfile=impdp.log
+
+导入结束后日志里有警告的sql，需要手动执行那些报错的sql
+
+```
+
 ### 安装 Elasticsearch2.x
 
 ```
@@ -225,6 +336,7 @@ docker run --name gitlab -d \
     --env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
+    --env 'GITLAB_TIMEZONE=Asia/Shanghai' \
 	--volume /data/docker/gitlabdata:/home/git/data \
     sameersbn/gitlab:11.3.0
 
