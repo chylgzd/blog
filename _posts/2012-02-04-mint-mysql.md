@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Mint安装MySQL
+title: MySQL相关
 category: [Linux-Mint,MySQL,HeidiSql,Navicat,Wine,自启动]
 comments: false
 ---

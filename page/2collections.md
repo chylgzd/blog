@@ -273,4 +273,20 @@ icon: bookmark
 
     Java unlimited redefinition of classes at runtime
 
+## 微信相关
+
+* [开发测试沙箱](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login)
+
+* [frp](https://github.com/fatedier/frp)
+
+* [natapp](https://natapp.cn/login)
+
+* [开放平台](https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&lang=zh_CN)
+
+* [公众号平台](https://mp.weixin.qq.com)
+
+
+
+
+
 
