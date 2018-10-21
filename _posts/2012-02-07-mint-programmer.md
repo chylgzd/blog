@@ -1,16 +1,14 @@
 ---
 layout: post
 title: 开发运维相关
-category: [Linux-Mint,CentOs6,SpringBoot,Redis]
+category: [Linux-Mint,CentOs6,SpringBoot,Redis,证书,Jenkins,自动打包部署]
 comments: false
 ---
 
 * content
 {:toc}
 
-### Linux系统通用相关
-
-#### 安装Redis
+### 安装Redis
 ```
 > tar -zxf redis-4.0.11.tar.gz -C /data/redis/
 > cd  /data/redis/redis-4.0.11/
@@ -32,7 +30,7 @@ ok
 
 ```
 
-#### 安装Let's Encrypt证书
+### 安装Let's Encrypt证书
 ```
 参考：
 https://imququ.com/post/letsencrypt-certificate.html
@@ -128,11 +126,11 @@ nginx -s reload
 0 0 1 * * /data/dev/letsencrypt/mytest.com/flush_cert.sh >/dev/null 2>&1
 ```
 
-### CentOs6相关
+### SpringBoot服务自启动
 
-#### SpringBoot服务自启动
+#### CentOS6使用init.d方式
 ```
-> ln -s /data/deploy/xxx-mytest-0.01.jar /etc/init.d/myservice
+> ln -s /data/deploy/xxx-mytest-0.01.jar /etc/init.d/mytest
 
 > vim /data/deploy/xxx-mytest-0.01.conf:
 
@@ -141,14 +139,98 @@ JAVA_HOME="/data/java/jdk1.8.0_181"
 JAVA_OPTS=-Xmx300M
 RUN_ARGS="--spring.profiles.active=prod"
 
-> chkconfig --add myservice
-> chkconfig --list myservice
+> chkconfig --add mytest
+> chkconfig --list mytest
 
-service myservice start/stop/status
+service mytest start/stop/status
 
-tail -f /data/logs/myservice.log
+tail -f /data/logs/mytest.log
 ```
 
+#### CentOS7/其它高版本系统使用systemd方式
+
+```
+> vim /etc/systemd/system/mytest.service
+
+[Unit]
+Description=service-mytest
+After=syslog.target
+
+[Service]
+ExecStart=/home/jdk1.8.0_181/bin/java -Dspring.profiles.active=prod -Dserver.port=8080 -jar /home/mytest/target/mytest-0.01.jar
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+
+> systemctl daemon-reload
+
+启动或停止服务
+> systemctl start/stop mytest.service
+
+```
+
+### Jenkins自动打包部署启动脚本
+
+```
+
+> vim deploy.sh
+
+#!/bin/sh
+
+mvn_bin=/data/maven/apache-maven-3.5.4/bin/mvn
+project_dir=/data/deploy/mytest
+cd $project_dir
+
+git remote prune origin
+
+if [ $# -eq 0 ];then
+echo "分支名不能为空！"
+git branch -la
+exit 0
+fi
+
+service mytest stop
+
+branch_name=$1
+git pull
+git reset --hard origin/$branch_name
+git checkout $branch_name
+git pull
+
+rm -rf target/*
+
+$mvn_bin clean package -Dmaven.test.skip=true -e
+
+error_code=$?
+if [ $error_code -eq 0 ];then
+    error_msg="部署成功！"
+else
+    error_msg="部署失败！" 
+fi
+
+service mytest start 
+service mytest status
+
+tail -1f /data/logs/mytest.log | sed '/Started MyTestSpringBootApplication in/Q'
+
+echo $error_msg
+
+curl 'https://oapi.dingtalk.com/robot/send?access_token=xxxxxx' \
+   -H 'Content-Type: application/json' \
+   -d '
+  {"msgtype": "text", 
+    "text": {
+        "content":"'$error_msg'"
+     }
+  }'
+
+exit 0
+
+
+Jenkins - 自由风格 - 构建 - Send files or execute commands over SSH
+Exec command：sh /data/mytest/deploy.sh master  
+```
 
 
 
