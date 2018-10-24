@@ -31,7 +31,7 @@ Oracle-instant-client:
 
 OS-linux：https://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html
 (OS-ALL:https://www.oracle.com/technetwork/database/database-technologies/instant-client/downloads/index.html)
-选择basic-11.1.0.7.0-linux-x86_64.zip (yx163-Ch17)
+选择instantclient-basic-win32-11.1.0.7.0 (yx163-Ch17)
 
 打开Navicat for oracle选择tools - options - OCI 选择解压oracle-install-client后的oci文件重启即可
 

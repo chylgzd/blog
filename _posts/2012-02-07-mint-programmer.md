@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 开发运维相关
-category: [Linux-Mint,CentOs6,SpringBoot,Redis,证书,Jenkins,自动打包部署]
+category: [Linux-Mint,CentOs6,SpringBoot,Redis,证书,Jenkins,自动打包部署,Nginx]
 comments: false
 ---
 
@@ -27,6 +27,59 @@ requirepass pwd123456（设置redis访问密码）
 (error) NOAUTH Authentication required.
 >>auth pwd123456
 ok
+
+```
+
+### nginx相关
+```
+> vim /etc/nginx/conf.d/default.conf
+#禁用ip访问
+server{
+    listen 80 default;
+    server_name _;
+    return 403;
+}
+
+> vim /etc/nginx/conf.d/mytest.com.conf：
+
+server{
+    listen       80;
+    server_name test.com www.test.com;
+    error_page 502 =502 @502;
+    error_page 503 =503 @503;
+    error_page 504 =504 @504;
+    location @502 {
+         default_type application/json;
+         return 502 '{"code":"502","msg":"Bad Gateway","success":false,"result":null}';
+    }
+    location @504 {
+         default_type application/json;
+         return 504 '{"code":"504","msg":"Gateway Time-out","success":false,"result":null}';
+    }
+    location @503 {
+         default_type application/json;
+         return 503 '{"code":"503","msg":"Service Temporarily Unavailable","success":false,"result":null}';
+    }
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    #location ~ \.(htm|html|gif|jpg|jpeg|png|ico|rar|css|js|zip|txt|flv|swf|doc|ppt|xls|pdf)$ {
+    location / {
+        root /data/www/myhtml/dist;
+        index index.html index.htm;
+        access_log off;
+        expires 1d;
+    }
+    location /test/m-demo {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+    }
+}
 
 ```
 
