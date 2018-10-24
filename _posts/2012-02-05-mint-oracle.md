@@ -176,6 +176,58 @@ SQL> exit;
 
 ```
 
+### Oracle相关查询
+```
+--当前的数据库连接数
+select count(*) from v$process where program='ORACLE.EXE(SHAD)';
+
+--数据库允许的最大连接数
+select value from v$parameter where name ='processes';
+
+--修改最大连接数
+alter system set processes = 500 scope = spfile;
+
+-- 最大连接
+show parameter processes;
+
+--并发连接数
+select count(*) from v$session where status='ACTIVE';
+
+--查询所有锁的sid, pid等信息
+SELECT 
+  l.inst_id, 
+  SUBSTR(L.ORACLE_USERNAME, 1, 8) ORA_USER, 
+  SUBSTR(L.SESSION_ID, 1, 3) SID, 
+  S.serial#, SUBSTR(O.OWNER||'.'||O.OBJECT_NAME, 1, 40) OBJECT,
+  P.SPID OS_PID, 
+  DECODE(
+    L.LOCKED_MODE, 0, 'NONE', 1, 'NULL', 
+    2, 'ROW SHARE', 3, 'ROW EXCLUSIVE', 
+    4, 'SHARE', 5, 'SHARE ROW EXCLUSIVE', 
+    6, 'EXCLUSIVE', NULL
+  ) LOCK_MODE 
+FROM 
+  sys.GV_$LOCKED_OBJECT L, 
+  DBA_OBJECTS O, 
+  sys.GV_$SESSION S, 
+  sys.GV_$PROCESS P 
+WHERE 
+  L.OBJECT_ID = O.OBJECT_ID 
+  AND l.inst_id = s.inst_id 
+  AND L.SESSION_ID = S.SID 
+  AND s.inst_id = p.inst_id 
+  AND S.PADDR = P.ADDR(+) 
+ORDER BY 
+  l.inst_id;
+
+--杀掉session多个id,号分隔
+alter system kill session '11,22';
+
+--查询触发器
+select * from all_triggers where table_name = 'tb_my_demo'
+select * from USER_TRIGGERS
+
+```
 
 
 
