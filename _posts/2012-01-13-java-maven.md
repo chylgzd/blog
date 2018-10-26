@@ -26,6 +26,20 @@ properties 里面可以定义maven系统属性如project.build.sourceEncoding，
 
 建议不要定义maven.test.skip而采用skipTests配合maven-surefire-plugin替代，否则不能在工程里运行测试类
 
+#### 运行JunitTest
+```
+mvn test -DskipTests=false -Dtest=MyTestClass#myTestMethod -e
+
+mvn test -DskipTests=false -Dtest=MyTestClass1,MyTestClass2,MyTestClass3 -e
+
+mvn test -DskipTests=false -Dtest=MyTestClass#*test* -e
+
+mvn test -DskipTests=false -Dtest=*TestClass#*TestMethod -e
+
+mvn test -pl ../test-web -DskipTests=false -Dtest=*
+
+```
+
 #### maven多模块编译某个工程并自动编译该工程所依赖的模块
 
 ```

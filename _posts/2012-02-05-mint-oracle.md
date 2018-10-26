@@ -176,6 +176,24 @@ SQL> exit;
 
 ```
 
+### Oracle 连接超时所产生的问题
+```
+查看数据库中listener.ora中的inbound_connect_timeout参数值
+
+> lsnrctl
+
+LSNRCTL> show inbound_connect_time
+
+LSNRCTL> set inbound_connect_time 0
+
+> vim /xxx/orcl/network/admin/sqlnet.ora
+
+SQLNET.INBOUND_CONNECT_TIMEOUT = 0
+
+LSNRCTL> reload
+
+```
+
 ### Oracle相关查询
 ```
 --当前的数据库连接数

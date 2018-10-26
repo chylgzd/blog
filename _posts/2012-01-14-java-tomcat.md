@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Tomcat 相关
-category: [Java,Tomcat,CentOS6]
+category: [Java,Tomcat,乱码,CentOS6]
 comments: false
 ---
 
@@ -54,6 +54,9 @@ sudo useradd -r -s /sbin/nologin tomcat
 JAVA_HOME=/home/soft/jdk1.8.0_181
 CATALINA_HOME=/home/soft/apache-tomcat-8.5.33
 TOMCAT_USER=tomcat
+#防止乱码
+CATALINA_OPTS="-Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
+
 # Licensed to the Apache Software Foundation (ASF) under one or more
 [root@localhost ~]# ln -s /xxx/apache-tomcat-8.5.33/bin/daemon.sh /etc/init.d/tomcatd
 [root@localhost ~]# chkconfig --add tomcatd

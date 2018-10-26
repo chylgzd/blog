@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mint各种问题
-category: [Linux-Mint,Mint各种问题]
+category: [Linux-Mint,Mint各种问题,乱码]
 comments: false
 ---
 

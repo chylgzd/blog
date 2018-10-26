@@ -111,6 +111,7 @@ server {
     }
     location / {
         rewrite ^/(.*)$ https://mytest.com/$1 permanent;
+        #rewrite ^(.*)$  https://$host$1 permanent;(当server_name为多个域名的时候)
     }
 }
 server {
@@ -155,7 +156,7 @@ ssl_certificate_key
 > nginx -s reload
 > cat intermediate.pem root.pem > full_chained.pem
 
-由于证书签发只有90天，到期后需更新证书脚本
+由于证书签发只有90天，到期后需更新证书脚本(注意：每个域名每个证书每周只能签发限制5次，不要多次刷新证书,否则会出现ERR_SSL_PROTOCOL_ERROR)
 > vim /data/dev/letsencrypt/mytest.com/flush_cert.sh：
 
 #!/bin/bash
