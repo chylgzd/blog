@@ -138,5 +138,26 @@ exit 0
 
 ```
 
+### Tomcat 并发设置
+
+```
+默认配置
+<Executor name="tomcatThreadPool" namePrefix="catalina-exec-"
+        maxThreads="150" minSpareThreads="4"/>
+并发参考
+<Executor name="tomcatThreadPool"        # 配置TOMCAT共享线程池，NAME为名称　
+          namePrefix="HTTP-8080-exec-"    # 线程的名字前缀，用于标记线程名称
+          prestartminSpareThreads="true"  # executor启动时，是否开启最小的线程数
+          maxThreads="5000"               # 允许的最大线程池里的线程数量，默认是200，大的并发应该设置的高一些，这里设置可以支持到5000并发
+          maxQueueSize="100"              # 任务队列上限
+          minSpareThreads="50"            # 最小的保持活跃的线程数量，默认是25.这个要根据负载情况自行调整了。太小了就影响反应速度，太大了白白占用资源
+          maxIdleTime="10000"             # 超过最小活跃线程数量的线程，如果空闲时间超过这个设置后，会被关别。默认是1分钟。
+ />
+
+<Connector port="8080" protocol="org.apache.coyote.http11.Http11NioProtocol"
+   connectionTimeout="5000" redirectPort="443" proxyPort="443" executor="tomcatThreadPool"
+   URIEncoding="UTF-8"/>
+
+```
 
 
