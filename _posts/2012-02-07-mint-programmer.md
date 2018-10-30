@@ -182,15 +182,79 @@ nginx -s reload
 
 ### SpringBoot服务自启动
 
+#### log4j2_prod.xml
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+	<properties>
+			<property name="project-name">mytest-prod</property>
+			<property name="logfile-dir">/data/logs/mytest-prod/</property>
+			<property name="console-pattern">%d{yyyyMMdd HH:mm:ss.SSS} [%level:%thread] %logger{36} - %msg%n</property>
+			<property name="logfile-pattern">%d{yyyyMMdd HH:mm:ss.SSS} [%level:%thread] %logger - %msg%n</property>
+	</properties>
+	<Appenders>
+		<Console name="stdout" target="SYSTEM_OUT" follow="true">
+			<PatternLayout pattern="${console-pattern}" />
+		</Console>
+		<RollingFile name="${project-name}"  fileName="${logfile-dir}${project-name}.log" filePattern="${logfile-dir}${project-name}.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="true">
+			<PatternLayout pattern="${logfile-pattern}" />
+			 <Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="1 GB" />
+            </Policies>
+		</RollingFile>
+		<RollingFile name="${project-name}-info" fileName="${logfile-dir}${project-name}-info.log" filePattern="${logfile-dir}${project-name}-info.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="false">
+			<PatternLayout pattern="${logfile-pattern}" />
+			<filters>
+					<ThresholdFilter level="FATAL" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+	        </filters>
+			 <Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="1 GB" />
+            </Policies>
+		</RollingFile>
+		<RollingFile name="${project-name}-error" fileName="${logfile-dir}${project-name}-error.log" filePattern="${logfile-dir}${project-name}-error.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="false">
+			<PatternLayout pattern="${logfile-pattern}" />
+			<filters>
+			     <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+	        </filters>
+			<Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="1 GB" />
+            </Policies>
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="stdout" />
+			<AppenderRef ref="${project-name}" />
+			<AppenderRef ref="${project-name}-info" />
+			<AppenderRef ref="${project-name}-error" />
+		</Root>
+	</Loggers>
+</Configuration>
+```
+
 #### CentOS6使用init.d方式
 ```
-> ln -s /data/deploy/xxx-mytest-0.01.jar /etc/init.d/mytest
+> vim   /data/deploy/mytest/target/config/application-prod.properties
 
-> vim /data/deploy/xxx-mytest-0.01.conf:
+server.port=8080
+spring.devtools.restart.enabled=false
+logging.config=log4j2_prod.xml
+
+> vim   /data/deploy/mytest/target/log4j2_prod.xml
+
+> ln -s /data/deploy/mytest/target/xxx-mytest-0.01.jar /etc/init.d/mytest
+
+> vim   /data/deploy/mytest/target/xxx-mytest-0.01.conf:
 
 LOG_FOLDER=/data/logs
 JAVA_HOME="/data/java/jdk1.8.0_181"
-JAVA_OPTS=-Xmx300M
+JAVA_OPTS="-Xmx500M -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
 RUN_ARGS="--spring.profiles.active=prod"
 
 > chkconfig --add mytest
@@ -233,6 +297,7 @@ WantedBy=multi-user.target
 #!/bin/sh
 
 mvn_bin=/data/maven/apache-maven-3.5.4/bin/mvn
+project_config_dir=/data/deploy/config
 project_dir=/data/deploy/mytest
 cd $project_dir
 
@@ -262,6 +327,11 @@ if [ $error_code -eq 0 ];then
 else
     error_msg="部署失败！" 
 fi
+
+cp $project_config_dir/log4j2_prod.xml $project_dir/target/
+cp $project_config_dir/mytest-0.01.conf $project_dir/target/
+mkdir -p $project_dir/target/config
+cp $project_config_dir/application-prod.properties $project_dir/target/config/
 
 service mytest start 
 service mytest status
