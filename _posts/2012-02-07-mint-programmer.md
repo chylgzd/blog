@@ -8,7 +8,9 @@ comments: false
 * content
 {:toc}
 
-### 安装Redis
+### Redis相关
+
+#### 安装Redis
 ```
 > tar -zxf redis-4.0.11.tar.gz -C /data/redis/
 > cd  /data/redis/redis-4.0.11/
@@ -27,6 +29,20 @@ requirepass pwd123456（设置redis访问密码）
 (error) NOAUTH Authentication required.
 >>auth pwd123456
 ok
+
+```
+
+#### Redis命令相关
+
+```
+
+> ./src/redis-client
+
+127.0.0.1:6379> SELECT 5
+
+127.0.0.1:6379[5]> get My_CACHE_USER:N1:M1
+
+> ./src/redis-client -n 5 --scan --pattern My_CACHE_USER* | xargs redis-cli -n 5 del
 
 ```
 

@@ -326,24 +326,24 @@ client.hkeys("hash key", function (err, replies) {
 更多参数配置参考：https://github.com/sameersbn/docker-gitlab
 
 下载 gitlab：
-docker pull sameersbn/gitlab:11.3.0
+docker pull sameersbn/gitlab:11.4.3
 
 启动 gitlab（如果有nginx代理到10080端口，则GITLAB_PORT=80）：
-docker run --name gitlab -d \
+docker run --name gitlab11.4.3 -d \
     --link postgresql:postgresql --link redis:redisio \
     --publish 10022:22 --publish 10080:80 \
-    --env 'GITLAB_HOST=git.yourdomain.com' --env 'GITLAB_PORT=80' --env 'GITLAB_SSH_PORT=10022' \
+    --env 'GITLAB_HOST=git.yourdomain.com' --env 'GITLAB_PORT=80' --env 'GITLAB_SSH_PORT=10022' --env 'GITLAB_ROOT_EMAIL=test@gmail.com' \
     --env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
-    --env 'GITLAB_TIMEZONE=Asia/Shanghai' \
-	--volume /data/docker/gitlabdata:/home/git/data \
-    sameersbn/gitlab:11.3.0
+    --env 'GITLAB_TIMEZONE=Beijing' \
+	--volume /data/docker/gitlab/data:/home/git/data \
+    sameersbn/gitlab:11.4.3
 
 用浏览器访问：
 http://localhost:10080
 
-会提示修改密码，比如设置为12345678，然后登陆，默认账户是：admin@example.com
+会提示修改密码，比如设置为12345678，然后登陆，默认账户是：admin@example.com或设置的GITLAB_ROOT_EMAIL
 
 登陆进去后创建工程，参考（http://localhost:10080/help/ssh/README）完成SSH Keys添加：
 ssh-keygen -t rsa -C "admin@example.com"
