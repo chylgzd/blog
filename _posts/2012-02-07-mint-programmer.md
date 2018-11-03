@@ -48,8 +48,47 @@ ok
 
 ### nginx相关
 ```
-> vim /etc/nginx/conf.d/default.conf
+# 查看是否支持多个https到一台机器
+nginx -V
+
+TLS SNI support enabled
+
+
+# 强制跳转HTTPS的
+server{
+    listen 80;
+    ...
+    location / {
+        rewrite ^/(.*)$ https://mytest.com/$1 permanent;
+    }
+    ...
+}
+server{
+    listen 443;
+    ...
+}
+
+# 同时支持HTTP和HTTPS的
+server{
+    listen 80;
+    listen 443;
+    ...
+    location / {
+        rewrite ^/(.*)$ https://mytest.com/$1 permanent;
+    }
+    ...
+}
+
+#允许请求head参数里使用下划线
+> vim /etc/nginx/nginx.conf
+http {
+    ...
+    underscores_in_headers on;
+    ...
+}
+
 #禁用ip访问
+> vim /etc/nginx/conf.d/default.conf
 server{
     listen 80 default;
     server_name _;
@@ -105,6 +144,8 @@ server{
 https://imququ.com/post/letsencrypt-certificate.html
 https://imququ.com/post/my-nginx-conf.html
 https://github.com/diafygi/acme-tiny
+https://www.liaosam.com/use-cron-service-and-certbot-for-renewal-of-letsencrypt-ssl-certificates.html
+https://www.vpser.net/build/letsencrypt-certbot.html
 
 > mkdir -p /data/dev/letsencrypt/mytest.com/ssl
 > cd /data/dev/letsencrypt/mytest.com/ssl
@@ -131,11 +172,13 @@ server {
     }
 }
 server {
+    #listen 443 default ssl;
     listen 443 ssl;
     server_name mytest.com www.mytest.com;
+    ssl on;
     #ssl_certificate /data/dev/letsencrypt/mytest.com/ssl/chained.pem;
     #ssl_certificate_key /data/dev/letsencrypt/mytest.com/ssl/domain.key;
-    
+    ssl_session_tickets off;
     #location ~ \.(htm|html|gif|jpg|jpeg|png|ico|rar|css|js|zip|txt|flv|swf|doc|ppt|xls|pdf)$ {
     location / {
         root /data/project-frontend/dist;
