@@ -139,6 +139,78 @@ server{
 ```
 
 ### 安装Let's Encrypt证书
+
+#### 自动方式(推荐)
+```
+#选择操作系统与http服务，比如ubuntu16-nginx
+https://certbot.eff.org/lets-encrypt/ubuntuxenial-nginx
+
+$ sudo apt-get update
+$ sudo apt-get install software-properties-common
+$ sudo add-apt-repository ppa:certbot/certbot
+$ sudo apt-get update
+$ sudo apt-get install python-certbot-nginx 
+
+# centos6-nginx
+https://certbot.eff.org/lets-encrypt/centos6-nginx
+
+# 多个域名共用生成到/data/webserver/letsencrypt/live/my-test目录下,公用名是第一个-d的域名
+# 生成证书-ubuntu
+> certbot --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt --register-unsafely-without-email --nginx certonly
+# 生成证书-centos6，
+> ./certbot-auto --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt --register-unsafely-without-email --nginx certonly
+
+a，多个域名逗号分隔1,2,4
+
+#出现下面提示成功，并且证书地址复制到nginx:
+Congratulations! Your certificate and chain have been saved at:
+
+> vim /etc/nginx/conf.d/mytest.com.conf 
+server{
+    listen 80;
+    listen 443 ssl;
+    server_name mytest.com www.mytest.com;
+    ssl_certificate /etc/letsencrypt/live/mytest.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mytest.com/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/mytest.com/chain.pem;
+    ssl_session_tickets on;
+    if ($scheme = http) {
+        rewrite ^/(.*)$ https://mytest.com/$1 permanent;
+    }
+    location / {
+        root /data/www/mytest.com/dist;
+        index index.html index.htm;
+        access_log off;
+        expires 1d;
+    }
+    location /backend {
+        proxy_pass http://127.0.0.1:8081;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    }
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    ....
+}
+
+> nginx -s reload
+
+#重新生成之前的所有证书，执行dry-run模拟测试是否成功：
+> certbot renew --config-dir /data/webserver/letsencrypt --dry-run
+# 成功后加入真正的定时任务执行
+> certbot renew --config-dir /data/webserver/letsencrypt 
+> vim /data/webserver/letsencrypt/flush_certbot.sh
+#!/bin/bash
+/data/webserver/letsencrypt/certbot-auto renew --config-dir /data/webserver/letsencrypt 
+nginx -s reload
+
+> crontab -e
+0 0 1 * * /data/webserver/letsencrypt/flush_certbot.sh >/dev/null 2>&1
+```
+
+#### 手动方式
 ```
 参考：
 https://imququ.com/post/letsencrypt-certificate.html
@@ -149,13 +221,16 @@ https://www.vpser.net/build/letsencrypt-certbot.html
 
 > mkdir -p /data/dev/letsencrypt/mytest.com/ssl
 > cd /data/dev/letsencrypt/mytest.com/ssl
+#创建私钥
 > openssl genrsa 4096 > account.key
+#创建 CSR 文件
 > openssl ecparam -genkey -name secp384r1 | openssl ec -out domain.key
 > openssl req -new -sha256 -key domain.key -subj "/" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:mytest.com,DNS:www.mytest.com")) > domain.csr
 (
 如果出现cat: /etc/ssl/openssl.cnf: 没有那个文件或目录,
 则先find / -name openssl.cnf，再替换命令里的openssl.cnf文件目录（centos:/etc/pki/tls/openssl.cnf）
 )
+# acme-tiny
 > wget https://raw.githubusercontent.com/diafygi/acme-tiny/master/acme_tiny.py
 > mkdir -p /data/dev/letsencrypt/mytest.com/www/challenges
 > vim /etc/nginx/conf.d/mytest.com.conf 
@@ -178,7 +253,7 @@ server {
     ssl on;
     #ssl_certificate /data/dev/letsencrypt/mytest.com/ssl/chained.pem;
     #ssl_certificate_key /data/dev/letsencrypt/mytest.com/ssl/domain.key;
-    ssl_session_tickets off;
+    ssl_session_tickets on;
     #location ~ \.(htm|html|gif|jpg|jpeg|png|ico|rar|css|js|zip|txt|flv|swf|doc|ppt|xls|pdf)$ {
     location / {
         root /data/project-frontend/dist;
@@ -197,15 +272,20 @@ server {
     }
 }
 > nginx -s reload 
+# 获取签名证书
 > python acme_tiny.py --account-key ./account.key --csr ./domain.csr --acme-dir /data/dev/letsencrypt/mytest.com/www/challenges/ > ./signed.crt
 (
 如果出现ImportError: No module named argparse,
 则需要安装python-argparse模块
 yum install python-argparse 或者 apt-get install python-argparse
 )
+# 安装证书
 > wget -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > intermediate.pem
 > cat signed.crt intermediate.pem > chained.pem
+# 为了后续启用OCSP Stapling把根证书和中间证书合在一起
 > wget -O - https://letsencrypt.org/certs/isrgrootx1.pem > root.pem
+> cat intermediate.pem root.pem > full_chained.pem
+
 > vim /etc/nginx/conf.d/mytest.com.conf
 (
 去掉证书目录#注释
@@ -213,7 +293,6 @@ ssl_certificate
 ssl_certificate_key
 )
 > nginx -s reload
-> cat intermediate.pem root.pem > full_chained.pem
 
 由于证书签发只有90天，到期后需更新证书脚本(注意：每个域名每个证书每周只能签发限制5次，不要多次刷新证书,否则会出现ERR_SSL_PROTOCOL_ERROR)
 > vim /data/dev/letsencrypt/mytest.com/flush_cert.sh：
