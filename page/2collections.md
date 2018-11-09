@@ -251,6 +251,9 @@ icon: bookmark
  * [chrome](/blog/download/chrome.zip)
     [chrome-plugin-proxy](/blog/download/chrome/ubtsdsSwitchyOmegaChrom.tar.gz)
 
+ * [deepin-wineqq-for-ubuntu](https://gitee.com/wszqkzqk/deepin-wine-for-ubuntu)
+    [deepin-im-light](http://mirrors.aliyun.com/deepin/pool/non-free/d/deepin.com.qq.im.light/deepin.com.qq.im.light_7.9.14308deepin8_i386.deb)
+
 ## 持续集成代码发布相关
 
 * [jenkins](https://github.com/jenkinsci/jenkins)
