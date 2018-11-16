@@ -242,11 +242,13 @@ icon: bookmark
 
  * [sds-qt5](https://github.com/shadowsocks/shadowsocks-qt5/wiki/%E5%AE%89%E8%A3%85%E6%8C%87%E5%8D%97)
 
-    [sq290w64](/blog/download/sq290w64.7z)
+    [sq290w64](/blog/download/sq290w64.7z)  ,  [sq301linux](/blog/download/sq301linux.7z)
 
     [sdsx263.dmg](/blog/download/osx/sdsx263.dmg)
 
     [gz78](https://c.yitianjianss.com)  ,  [gz78](https://f.aiguobit.com/users/login)
+
+    [simple-obfs](https://github.com/shadowsocks/simple-obfs)  ,  [sds-win](https://github.com/shadowsocks/shadowsocks-windows)  ,  [sds-cygwin](https://github.com/imgk/simple-obfs-Cygwin/releases)
 
  * [chrome](/blog/download/chrome.zip)
     [chrome-plugin-proxy](/blog/download/chrome/ubtsdsSwitchyOmegaChrom.tar.gz)

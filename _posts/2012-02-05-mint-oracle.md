@@ -194,7 +194,7 @@ LSNRCTL> reload
 
 ```
 
-### Oracle相关查询
+### Oracle相关语句
 ```
 --当前的数据库连接数
 select count(*) from v$process where program='ORACLE.EXE(SHAD)';
@@ -244,6 +244,42 @@ alter system kill session '11,22';
 --查询触发器
 select * from all_triggers where table_name = 'tb_my_demo'
 select * from USER_TRIGGERS
+
+-- 添加新列
+ALTER TABLE TB_XXX ADD (col_xx NUMBER(12) );
+COMMENT ON COLUMN TB_XXX.col_xx IS '测试列';
+
+-- 通过其它表数据创建中间表
+CREATE TABLE TMP1_XXX AS 
+SELECT * FROM ....
+
+-- 创建临时表
+CREATE GLOBAL TEMPORARY TABLE TMP2_XXX ON COMMIT PRESERVE ROWS AS 
+SELECT * FROM ....
+
+-- 创建视图
+CREATE OR REPLACE FORCE VIEW "VIEW_XXX" WITH SCHEMABINDING AS 
+SELECT * FROM ....
+
+-- 删除表
+DROP TABLE TB_XXX cascade constraints PURGE
+
+-- 创建表
+CREATE TABLE "TB_XXX" 
+(	
+    "ID" NUMBER(32) NOT NULL ENABLE, 
+    "NAME" VARCHAR2(100 BYTE), 
+    "ADDRESS" VARCHAR2(32 BYTE) NOT NULL ENABLE, 
+     CONSTRAINT "TB_XXX_PK" PRIMARY KEY ("ID") 
+) 
+TABLESPACE "TBSP_XXX" ;
+COMMENT ON COLUMN "TB_XXX"."ID" IS '编号';
+COMMENT ON COLUMN "TB_XXX"."NAME" IS '姓名';
+COMMENT ON COLUMN "TB_XXX"."ADDRESS" IS '地址';
+
+-- 使用MERGE INTO关联其它表更新当前表数据(关联关系id必须一对一)
+MERGE INTO TB_XX1 x1 USING TB_XX2 x2 ON(x1.id=x2.id) 
+WHEN MATCHED THEN UPDATE SET x1.name=x2.name,x1.age=x2.age WHERE x1.id>12
 
 ```
 

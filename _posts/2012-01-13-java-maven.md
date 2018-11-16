@@ -465,7 +465,7 @@ mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpa
 
   <servers>
     <server>
-      <id>yourServerId</id>
+      <id>nexus-xxxx</id>
       <username>yourName</username>
       <password>yourPassword</password>
     </server>
@@ -473,39 +473,60 @@ mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpa
 
   <mirrors>
     <mirror>
-      <id>yourMirrorId</id>
+      <id>nexus-xxxx</id>
       <mirrorOf>*</mirrorOf>
-      <name>yourMirrorName</name>
+      <name>xxxx</name>
       <url>http://127.0.0.1:8081/repository/maven-public/</url>
     </mirror>
   </mirrors>
 
   <profiles>
         <profile>
-            <id>yourMirrorId</id>
+            <id>nexus-xxxx</id>
             <repositories>
                 <repository>
                     <id>central</id>
                     <url>http://central</url>
-                    <releases><enabled>true</enabled></releases>
-                    <snapshots><enabled>true</enabled></snapshots>
+                    <releases><enabled>true</enabled><updatePolicy>always</updatePolicy></releases>
+                    <snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>
                 </repository>
             </repositories>
             <pluginRepositories>
                 <pluginRepository>
                     <id>central</id>
                     <url>http://central</url>
-                    <releases><enabled>true</enabled></releases>
-                    <snapshots><enabled>true</enabled></snapshots>
+                    <releases><enabled>true</enabled><updatePolicy>always</updatePolicy></releases>
+                    <snapshots><enabled>true</enabled><updatePolicy>always</updatePolicy></snapshots>
                 </pluginRepository>
             </pluginRepositories>
         </profile>
     </profiles>
 
     <activeProfiles>
-        <activeProfile>yourMirrorId</activeProfile>
+        <activeProfile>nexus-xxxx</activeProfile>
     </activeProfiles>
 </settings>
+```
+
+#### maven 其它语句相关
+```
+#安装到本地maven仓库
+mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=/user/data/ojdbc14.jar
+
+#上传到maven私服
+1.创建部署的私有仓库maven2(hosted)取名test,Deployment policy:选择允许
+2.创建部署的角色deployer,赋予权限(admin,view和其它仓库的read权限)nx-repository-admin-maven2-test-*,nx-repository-view-maven2-test-*,nx-repository-view-*-*-read
+3.创建部署的用户deployer,选择角色deployer,Anonymous界面取消匿名，名字deployer保存
+4.本地settings.xml文件添加server配置
+<server>
+  <id>nexus-xxxx</id>
+  <username>deployer</username>
+  <password>xxx</password>
+</server>
+5.把本地jar包上传到私服
+mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=ojdbc14.jar -Durl=http://xxmaven.com/repository/test -DrepositoryId=nexus-xxxx
+
+6.其它创建一个只读的权限(nx-repository-view-*-*-read)供其它人拉取jar包的帐号即可
 ```
 
 ### maven-archetype

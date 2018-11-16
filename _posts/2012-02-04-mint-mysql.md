@@ -183,3 +183,27 @@ start on (filesystem and net-device-up IFACE!=lo)改为
 start on (filesystem and net-device-up IFACE!=lo) runlevel [!0123456]
 ```
 
+### MYSQL8相关 
+
+#### 递归查询
+```
+#tb_user表某几列id,pid,name,递归查询根节点下的所有子节点
+WITH RECURSIVE tmp(id,pid,name) AS
+(
+	SELECT id,pid,name FROM tb_user WHERE id = 2 -- 这里是根节点ID值
+	UNION ALL 
+	SELECT u.id,u.pid,u.name FROM tmp t JOIN tb_user u ON t.id = u.pid 
+)
+SELECT * FROM tmp -- 这里可以再联合其它表关联查询了 LEFT JOIN ...
+
+#或者所有列
+WITH RECURSIVE tmp AS
+(
+	SELECT * FROM tb_user WHERE id = 2  
+	UNION ALL 
+	SELECT u.* FROM tmp t JOIN tb_user u ON t.id = u.pid 
+)
+SELECT * FROM tmp
+
+```
+
