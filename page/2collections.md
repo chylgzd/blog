@@ -242,7 +242,7 @@ icon: bookmark
 
  * [sds-qt5](https://github.com/shadowsocks/shadowsocks-qt5/wiki/%E5%AE%89%E8%A3%85%E6%8C%87%E5%8D%97)
 
-    [sq290w64](/blog/download/sq290w64.7z)  ,  [sq301linux](/blog/download/sq301linux.7z)
+    [ss406win](/blog/download/ss406win.zip)  ,  [qt290w64](/blog/download/sq290w64.7z)  ,  [sq301linux](/blog/download/sq301linux.7z)
 
     [sdsx263.dmg](/blog/download/osx/sdsx263.dmg)
 
