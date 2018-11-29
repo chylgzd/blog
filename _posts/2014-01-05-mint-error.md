@@ -96,4 +96,15 @@ set fencs=utf8,gbk,gb2312,gb18030
 
 ```
 
+#### xed文本编辑器乱码问题
+```
+> sudo apt install dconf-editor
+> dconf-editor
+
+展开org->x->editor->preferences->encodings
+设置auto-detected:
+['GB18030', 'UTF-8', 'CURRENT', 'ISO-8859-15', 'UTF-16']
+
+```
+
 

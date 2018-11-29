@@ -9,12 +9,12 @@ comments: false
 {:toc}
 
 ### 安装Oracle
+
+
+####  [docker下安装oracle](/blog/2015/02/02/mint-docker-soft/#%E5%AE%89%E8%A3%85-oracle)
 ```
 官方原版下载地址：
 https://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html
-
-或者参考docker下如何安装oracle：
-https://chylgzd.github.io/blog/2015/02/02/mint-docker-soft/#%E5%AE%89%E8%A3%85-oracle
 
 ```
 
