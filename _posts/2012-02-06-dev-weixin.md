@@ -70,6 +70,48 @@ nginx -s reload
 
 ```
 
+### 微信开发配置相关
+
+#### 微信公众号设置登录运营管理号
+
+```
+https://mp.weixin.qq.com/
+
+设置 -> 人员设置 -> 运营者管理 -> 绑定运营者微信号
+
+```
+
+#### 微信公众平台配置开发者
+
+```
+https://mp.weixin.qq.com/
+登录需要调试开发的公众号：
+
+开发 -> 开发者工具 -> web开发者工具 -> 绑定开发者微信号
+
+```
+
+#### 微信开发者工具下载(需先绑定开发者微信号)
+```
+github-Linux版:
+https://github.com/cytle/wechat_web_devtools/releases
+
+gitee-Linux版：
+https://gitee.com/chao-fan/wechat_web_devtools/releases
+
+官方下载地址：
+https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html
+
+启动：
+/wechat_web_devtools/bin/wxdt
+```
+
+#### 微信开放平台配置（多个公众号UnionId）
+
+```
+https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=1417751808&token=&lang=zh_CN
+```
+
 
 
 
