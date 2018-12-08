@@ -253,6 +253,10 @@ COMMENT ON COLUMN TB_XXX.col_xx IS '测试列';
 CREATE TABLE TMP1_XXX AS 
 SELECT * FROM ....
 
+-- 创建表空间
+
+CREATE TABLESPACE tbs_my_test DATAFILE '/home/oracle/app/oracle/oradata/data_dir/tbs_my_test.dbf' SIZE 10G AUTOEXTEND ON NEXT 500M MAXSIZE UNLIMITED;
+
 -- 创建临时表
 CREATE GLOBAL TEMPORARY TABLE TMP2_XXX ON COMMIT PRESERVE ROWS AS 
 SELECT * FROM ....
@@ -281,6 +285,15 @@ COMMENT ON COLUMN "TB_XXX"."ADDRESS" IS '地址';
 MERGE INTO TB_XX1 x1 USING TB_XX2 x2 ON(x1.id=x2.id) 
 WHEN MATCHED THEN UPDATE SET x1.name=x2.name,x1.age=x2.age WHERE x1.id>12
 
+-- 复制表数据从tb1到tb2
+INSERT INTO tb1(a,b,c) SELECT a,b,c FROM tb2
+
+-- 查询上一行/下一行数据 
+lead/lag/结合over,partition by(相当于group by分组)
+SELECT 
+    lead(order_price) over(partition by order_type ORDER BY order_id,order_date DESC) last_price,
+    lag(order_price) over(partition by order_type ORDER BY order_id,order_date DESC) last_price 
+FROM order
 ```
 
 

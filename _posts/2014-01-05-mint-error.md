@@ -80,10 +80,15 @@ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-ke
 sudo apt-get update
 ```
 
-####
+#### 硬件模块列表
 ```
-https://ubuntuforums.org/showthread.php?t=1490833
-sudo rfkill list all
+rfkill list all
+```
+
+#### 强制禁用蓝牙
+```
+> sudo xed /etc/rc.local
+rfkill block bluetooth
 ```
 
 #### vim 乱码问题

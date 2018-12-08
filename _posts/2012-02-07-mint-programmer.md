@@ -206,7 +206,7 @@ server{
 /data/webserver/letsencrypt/certbot-auto renew --config-dir /data/webserver/letsencrypt 
 nginx -s reload
 
-> crontab -e
+> crontab -e (无效则使用vim /etc/crontab)
 0 0 1 * * /data/webserver/letsencrypt/flush_certbot.sh >/dev/null 2>&1
 ```
 
@@ -314,7 +314,7 @@ nginx -s reload
 > chmod 700 /data/dev/letsencrypt/mytest.com/flush_cert.sh
 
 使用crontab定时任务每月自动更新证书：
-> crontab -e
+> crontab -e (无效则使用vim /etc/crontab)
 0 0 1 * * /data/dev/letsencrypt/mytest.com/flush_cert.sh >/dev/null 2>&1
 ```
 
