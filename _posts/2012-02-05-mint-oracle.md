@@ -196,6 +196,12 @@ LSNRCTL> reload
 
 ### Oracle相关语句
 ```
+-- 树递归查询（https://docs.oracle.com/cd/B19306_01/server.102/b14200/queries003.htm）
+SELECT employee_id, last_name, manager_id, LEVEL
+FROM employees 
+START WITH employee_id = 100
+CONNECT BY PRIOR employee_id = manager_id;
+
 --当前的数据库连接数
 select count(*) from v$process where program='ORACLE.EXE(SHAD)';
 
@@ -294,6 +300,22 @@ SELECT
     lead(order_price) over(partition by order_type ORDER BY order_id,order_date DESC) last_price,
     lag(order_price) over(partition by order_type ORDER BY order_id,order_date DESC) last_price 
 FROM order
+
+-- 查询系统磁盘表空间使用情况（kb）
+SELECT Upper(F.TABLESPACE_NAME) tbs_name,D.TOT_GROOTTE_MB total_space,D.TOT_GROOTTE_MB - F.TOTAL_BYTES use_space,F.TOTAL_BYTES free_space FROM
+(
+    SELECT TABLESPACE_NAME, Round(Sum(BYTES), 2) TOTAL_BYTES 
+    FROM SYS.DBA_FREE_SPACE 
+    GROUP BY TABLESPACE_NAME
+) F, 
+(
+    SELECT DD.TABLESPACE_NAME, Round(Sum(DD.BYTES), 2) TOT_GROOTTE_MB 
+    FROM SYS.DBA_DATA_FILES DD 
+    GROUP BY DD.TABLESPACE_NAME
+) D 
+WHERE D.TABLESPACE_NAME = F.TABLESPACE_NAME 
+ORDER  BY 1
+
 ```
 
 
