@@ -341,6 +341,20 @@ nginx -s reload
                     <SizeBasedTriggeringPolicy size="1 GB" />
             </Policies>
 		</RollingFile>
+        <RollingFile name="${project-name}-debug" fileName="${logfile-dir}${project-name}-debug.log" filePattern="${logfile-dir}${project-name}-debug.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="false">
+			<PatternLayout pattern="${logfile-pattern}" />
+			<filters>
+					<ThresholdFilter level="FATAL" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="INFO" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+	        </filters>
+			 <Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="1 GB" />
+            </Policies>
+		</RollingFile>
 		<RollingFile name="${project-name}-info" fileName="${logfile-dir}${project-name}-info.log" filePattern="${logfile-dir}${project-name}-info.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="false">
 			<PatternLayout pattern="${logfile-pattern}" />
 			<filters>
@@ -366,6 +380,11 @@ nginx -s reload
 		</RollingFile>
 	</Appenders>
 	<Loggers>
+        <!--设置druid日志level为debug-->
+	    <Logger name="druid" level="debug" additivity="false">
+	        <AppenderRef ref="stdout"/>
+	        <AppenderRef ref="${project-name}"/>
+	    </Logger>
 		<Root level="info">
 			<AppenderRef ref="stdout" />
 			<AppenderRef ref="${project-name}" />
