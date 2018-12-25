@@ -25,9 +25,9 @@ requirepass pwd123456（设置redis访问密码）
 
 > ./src/redis-server ./redis.conf
 > ./src/redis-client -h 127.0.0.1 -p 6377
->>KEYS *
+127.0.0.1:6377> KEYS *
 (error) NOAUTH Authentication required.
->>auth pwd123456
+127.0.0.1:6377> AUTH pwd123456
 ok
 
 ```
@@ -43,6 +43,17 @@ ok
 127.0.0.1:6379[5]> get My_CACHE_USER:N1:M1
 
 > ./src/redis-client -n 5 --scan --pattern My_CACHE_USER* | xargs redis-cli -n 5 del
+
+如果有密码:
+127.0.0.1:6379> SELECT 5
+127.0.0.1:6379> AUTH yourpasswd
+
+清除当前select的DB 5 下的所有数据：
+127.0.0.1:6379> SELECT 5
+127.0.0.1:6379> FLUSHDB
+
+清除redis所有DB的数据：
+127.0.0.1:6379> FLUSHALL
 
 ```
 
@@ -207,7 +218,7 @@ server{
 nginx -s reload
 
 > crontab -e (无效则使用vim /etc/crontab)
-0 0 1 * * /data/webserver/letsencrypt/flush_certbot.sh >/dev/null 2>&1
+0 0 1 * * root /data/webserver/letsencrypt/flush_certbot.sh >/dev/null 2>&1
 ```
 
 #### 手动方式
@@ -315,7 +326,7 @@ nginx -s reload
 
 使用crontab定时任务每月自动更新证书：
 > crontab -e (无效则使用vim /etc/crontab)
-0 0 1 * * /data/dev/letsencrypt/mytest.com/flush_cert.sh >/dev/null 2>&1
+0 0 1 * * root /data/dev/letsencrypt/mytest.com/flush_cert.sh >/dev/null 2>&1
 ```
 
 ### SpringBoot服务自启动

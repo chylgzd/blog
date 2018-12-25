@@ -95,11 +95,11 @@ exit 0
 
 
 #定时任务crontab脚本执行切分脚本
-> crontab -e
+> crontab -e(centos6 vim /etc/crontab )
 
-59 23 * * * root /xx/shell/test.sh
+59 23 * * * root /xx/shell/splitlog.sh
 
-> /etc/rc.d/init.d/crond restart
+> /etc/rc.d/init.d/crond restart (service crond restart)
 > crontab -l
 
 ```
