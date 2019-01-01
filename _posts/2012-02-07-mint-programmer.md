@@ -165,8 +165,8 @@ $ sudo apt-get install python-certbot-nginx
 # centos6-nginx
 https://certbot.eff.org/lets-encrypt/centos6-nginx
 
-# 多个域名共用生成到/data/webserver/letsencrypt/live/my-test目录下,公用名是第一个-d的域名
-# 生成证书-ubuntu
+# 多个域名共用生成到/data/webserver/letsencrypt/live/my-test目录下,公用名是第一个-d的域名(新加域名从这里开始即可)
+# 生成证书-ubuntu 
 > certbot --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt --register-unsafely-without-email --nginx certonly
 # 生成证书-centos6，
 > ./certbot-auto --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt --register-unsafely-without-email --nginx certonly
@@ -209,11 +209,15 @@ server{
 > nginx -s reload
 
 #重新生成之前的所有证书，执行dry-run模拟测试是否成功：
-> certbot renew --config-dir /data/webserver/letsencrypt --dry-run
+> (ubuntu) certbot renew --config-dir /data/webserver/letsencrypt --dry-run
+> (centos6) ./certbot-auto renew --config-dir /data/webserver/letsencrypt --dry-run
 # 成功后加入真正的定时任务执行
 > certbot renew --config-dir /data/webserver/letsencrypt 
 > vim /data/webserver/letsencrypt/flush_certbot.sh
 #!/bin/bash
+(ubuntu：)
+certbot renew --config-dir /data/webserver/letsencrypt
+(centos6：)
 /data/webserver/letsencrypt/certbot-auto renew --config-dir /data/webserver/letsencrypt 
 nginx -s reload
 

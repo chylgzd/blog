@@ -156,6 +156,25 @@ impdp mytestusr/123456@helowin directory=dump_dir dumpfile=expdp_mytestusr_full.
 
 ```
 
+### Oracle 创建用户赋权限
+```
+-- 创建用户
+CREATE USER myuser IDENTIFIED BY "test@123456"
+
+-- 赋予登录权限
+GRANT CREATE SESSION TO myuser
+
+-- 将另外一个用户的表权限复制给该用户，（dba用户登录执行下列查询导出为sql用dba权限执行即可）
+SELECT 'GRANT SELECT ON user1.' || t.table_name  || ' to myuser;'  from user_tables t
+SELECT 'GRANT UPDATE ON user1.' || t.table_name  || ' to myuser;'  from user_tables t
+SELECT 'GRANT INSERT ON user1.' || t.table_name  || ' to myuser;'  from user_tables t
+SELECT 'GRANT DELETE ON user1.' || t.table_name  || ' to myuser;'  from user_tables t
+
+-- 删除用户
+DROP USER myuser
+
+```
+
 ### Oracle11.2修改密码过程
 ```
 sqlplus /nolog;
