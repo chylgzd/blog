@@ -177,6 +177,11 @@ DROP USER myuser
 
 ### Oracle11.2修改密码过程
 ```
+sqlplus / as sysdba
+或
+sqlplus sys/sysdba
+(只能连接本机数据库不需要listener进程)
+
 sqlplus /nolog;
 SQL> conn sys/sys as sysdba;
 -- 查看密码重试次数
@@ -197,9 +202,11 @@ SQL> exit;
 
 ### Oracle 连接超时所产生的问题
 ```
+> tnsping 数据库IP
+
 查看数据库中listener.ora中的inbound_connect_timeout参数值
 
-> lsnrctl
+> lsnrctl (或 lsnrctl status)
 
 LSNRCTL> show inbound_connect_time
 

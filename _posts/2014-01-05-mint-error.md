@@ -112,4 +112,13 @@ set fencs=utf8,gbk,gb2312,gb18030
 
 ```
 
+#### zsh: no matches found
+```
+去掉zsh自动匹配：
+> vim ~/.zshrc
+setopt no_nomatch
+
+> source ~/.zshrc
+
+```
 
