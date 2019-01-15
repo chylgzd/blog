@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 开发运维相关
-category: [Linux-Mint,CentOs6,SpringBoot,Redis,证书,Jenkins,自动打包部署,Nginx]
+category: [Linux-Mint,CentOs6,SpringBoot,Redis,证书,Jenkins,自动打包部署,Nginx,Jetty]
 comments: false
 ---
 
@@ -531,6 +531,60 @@ Jenkins - 自由风格 - 构建 - Send files or execute commands over SSH
 Exec command：sh /data/mytest/deploy.sh master  
 ```
 
+### Jetty相关
+```
+下载Jetty9
+
+https://www.eclipse.org/jetty/download.html
+
+解压jetty到jetty9，部署war文件到jetty9/webapps目录，没有ROOT可以手动创建(demo-base目录可以删除)
+
+修改配置文件：
+
+> vim ./start.ini
+--module=ext
+--module=server
+--module=jsp
+--module=resources
+--module=deploy
+--module=jstl
+#--module=websocket(没有用到websocket就禁用)
+--module=http
+jetty.http.port=8080
+jetty.http.connectTimeout=35000
+
+启动/停止/重启/调试 jetty：
+
+> ./bin/jetty.sh start
+> ./bin/jetty.sh stop
+> ./bin/jetty.sh restart
+> ./bin/jetty.sh run (相当于tomcat catalina.sh run)
+
+同一服务器跑多个jetty：
+
+1. 修改配置文件：
+
+> vim ./start.ini
+jetty.http.port=8080(修改这里的端口)
+
+2. 重命名启动脚本：
+
+> mv ./bin/jetty.sh ./bin/jetty01.sh
+
+以服务方式启动：
+
+> ln -s /jetty9/bin/jetty01.sh /etc/init.d/myJettyService01
+> vim /jetty9/bin/jetty01.sh
+#!/usr/bin/env bash
+JETTY_HOME=/jetty9
+
+> service myJettyService01 check
+(检查服务启动参数如果正常则会打印相关jetty启动参数)
+
+> service myJettyService01 start
+
+> chkconfig myJettyService01 on
+```
 
 
 
