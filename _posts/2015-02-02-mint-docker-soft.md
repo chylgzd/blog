@@ -104,18 +104,18 @@ docker run --name postgresql -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASS
 ```
 更多参考：https://dev.aliyun.com/detail.html?spm=5176.1972343.2.8.E6Cbr1&repoId=1969
 
-mkdir -p /data/dev/oracle/dump_dir
-mkdir -p /data/dev/oracle/data_dir
+> mkdir -p /data/dev/oracle/dump_dir
+> mkdir -p /data/dev/oracle/data_dir
 
-docker pull registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
-docker run --name oracle_11g -p 1521:1521 -v /data/dev/oracle/dump_dir:/home/oracle/app/oracle/oradata/dump_dir -v /data/dev/oracle/data_dir:/home/oracle/app/oracle/oradata/data_dir -d registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
+> docker pull registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
+> docker run --name oracle_11g -p 1521:1521 -v /data/dev/oracle/dump_dir:/home/oracle/app/oracle/oradata/dump_dir -v /data/dev/oracle/data_dir:/home/oracle/app/oracle/oradata/data_dir -d registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
 
-docker exec -it oracle_11g bash
-source /home/oracle/.bash_profile
-cd /home/oracle/app/oracle/oradata
-su root
-helowin
-chown -R oracle:oinstall dump_dir data_dir
+> docker exec -it oracle_11g bash
+[oracle@126dx7c /]$ > source /home/oracle/.bash_profile
+[oracle@126dx7c /]$ > cd /home/oracle/app/oracle/oradata
+[oracle@126dx7c /]$ > su root
+Password:helowin
+[oracle@126dx7c /]$ > chown -R oracle:oinstall dump_dir data_dir
 
 ```
 #### 创建用户表空间

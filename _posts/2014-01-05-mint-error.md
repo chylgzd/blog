@@ -122,3 +122,11 @@ setopt no_nomatch
 
 ```
 
+#### 重新开启网络连接通知 re-enable network notification
+```
+> gsettings set org.gnome.nm-applet disable-connected-notifications false
+> gsettings set org.gnome.nm-applet disable-disconnected-notifications false
+> gsettings set org.gnome.nm-applet disable-vpn-notifications false
+
+```
+

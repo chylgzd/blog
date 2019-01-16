@@ -16,6 +16,65 @@ comments: false
 官方原版下载地址：
 https://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html
 
+更多参考：https://dev.aliyun.com/detail.html?spm=5176.1972343.2.8.E6Cbr1&repoId=1969
+
+> mkdir -p /data/dev/oracle/dump_dir
+> mkdir -p /data/dev/oracle/data_dir
+
+> docker pull registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
+> docker run --name oracle_11g -p 1521:1521 -v /data/dev/oracle/dump_dir:/home/oracle/app/oracle/oradata/dump_dir -v /data/dev/oracle/data_dir:/home/oracle/app/oracle/oradata/data_dir -d registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
+
+> docker exec -it oracle_11g bash
+[oracle@126dx7c /]$ > source /home/oracle/.bash_profile
+[oracle@126dx7c /]$ > cd /home/oracle/app/oracle/oradata
+[oracle@126dx7c /]$ > su root
+Password:helowin
+[oracle@126dx7c /]$ > chown -R oracle:oinstall dump_dir data_dir
+
+```
+
+#### 备份
+
+```
+> docker exec -it oracle_11g bash
+[oracle@126dx7c /]$ > source /home/oracle/.bash_profile
+
+[oracle@126dx7c /]$ > expdp mytestusr/123456@helowin compression=all schemas=mytestusr directory=dumpdir dumpfile=FULL_BACKUP%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.dmp logfile=expdp_%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.log
+
+```
+
+#### 导入expdp数据库
+
+```
+把备份文件上传到宿主机dump_dir目录：/data/dev/oracle/dump_dir/expdp_mytestusr_full.dmp
+
+查看与要导入的数据库字符串是否一致,不一致需要修改字符串一致：
+> docker exec -it oracle_11g bash
+[oracle@126dx7c /]$ > source /home/oracle/.bash_profile
+[oracle@126dx7c /]$ > sqlplus /nolog
+SQL> connect /as sysdba;
+SQL> select * from V$NLS_PARAMETERS;
+如果线上字符串为ZHS16GBK本地不是则需要修改本地docker数据库：
+SQL> SHUTDOWN IMMEDIATE;
+SQL> STARTUP MOUNT;
+SQL> ALTER SYSTEM ENABLE RESTRICTED SESSION;
+SQL> ALTER SYSTEM SET JOB_QUEUE_PROCESSES=0;
+SQL> ALTER SYSTEM SET AQ_TM_PROCESSES=0;
+SQL> ALTER DATABASE OPEN;
+SQL> ALTER DATABASE ﻿CHARACTER SET ZHS16GBK ;
+ERROR at line 1:
+ORA-02231: missing or invalid option to ALTER DATABASE
+SQL> ALTER DATABASE CHARACTER SET INTERNAL_USE ZHS16GBK;
+Database altered.
+SQL> exit;
+
+全部导入
+[oracle@126dx7c /]$ > impdp 'mytestusr/123456@helowin' full=Y directory=dump_dir dumpfile=expdp_mytestusr_full.dmp logfile=impdp.log TABLE_EXISTS_ACTION=REPLACE
+或
+[oracle@126dx7c /]$ > impdp mytestusr/123456@helowin directory=dump_dir dumpfile=expdp_mytestusr_full.dmp tables=mytestusr.tb_test remap_schema=mytestusr_prod:mytestusr logfile=impdp.log
+
+导入结束后日志里有警告的sql，需要手动执行那些报错的sql
+
 ```
 
 ###  安装Oracle图形化客户端
@@ -232,12 +291,6 @@ ALTER SYSTEM FLUSH SHARED_POOL;
 防止序列号高速缓存跳号：
 exec sys.DBMS_SHARED_POOL.KEEP('seq_myorder_id', 'Q');
 
--- 树递归查询（https://docs.oracle.com/cd/B19306_01/server.102/b14200/queries003.htm）
-SELECT employee_id, last_name, manager_id, LEVEL
-FROM employees 
-START WITH employee_id = 100
-CONNECT BY PRIOR employee_id = manager_id;
-
 --当前的数据库连接数
 select count(*) from v$process where program='ORACLE.EXE(SHAD)';
 
@@ -351,6 +404,35 @@ SELECT Upper(F.TABLESPACE_NAME) tbs_name,D.TOT_GROOTTE_MB total_space,D.TOT_GROO
 ) D 
 WHERE D.TABLESPACE_NAME = F.TABLESPACE_NAME 
 ORDER  BY 1
+
+-- 替换字符串
+SELECT replace(name,'aabb','') FROM test;
+
+-- 替换字符串正则表达式
+SELECT REGEXP_REPLACE(photo,'\?t=\w+','') FROM test;
+
+
+```
+
+#### 树递归查询相关
+```
+-- 树递归查询（https://docs.oracle.com/cd/B19306_01/server.102/b14200/queries003.htm）
+SELECT employee_id, last_name, manager_id, LEVEL
+FROM employees 
+START WITH employee_id = 100
+CONNECT BY PRIOR employee_id = manager_id;
+
+-- 查询某个节点上级第一个数据
+SELECT u.uid,u.name,m.mid,m.name FROM user u LEFT JOIN merchant m ON u.uid=m.user_id  
+WHERE u.uid != '100'  AND m.mid IS NOT NULL AND rownum =1 
+START WITH u.uid='100' 
+CONNECT BY NOCYCLE PRIOR u.pid = u.uid
+
+-- 查询某个节点下级第一级节点数据
+SELECT u.uid,u.name,m.mid,m.name,level FROM user u LEFT JOIN merchant m ON u.uid=m.user_id  
+WHERE m.mid IS NOT NULL AND level<=2  
+START WITH u.uid='100' 
+CONNECT BY NOCYCLE u.pid = PRIOR u.uid 
 
 ```
 
