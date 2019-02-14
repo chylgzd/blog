@@ -159,37 +159,45 @@ ps -ef |grep springboot | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/nu
 ```
 1】https://github.com/shadowsocks/shadowsocks-libev#debian--ubuntu
 
-sudo apt-get install software-properties-common -y
-sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev -y
-sudo apt-get update
-sudo apt install shadowsocks-libev
+> sudo apt-get install software-properties-common -y
+> sudo add-apt-repository ppa:max-c-lv/shadowsocks-libev -y
+> sudo apt-get update
+> sudo apt install shadowsocks-libev
 
 2】https://github.com/shadowsocks/simple-obfs
 
-cd ~/programming/project/a.yitianjianss.com/
-sudo apt-get install --no-install-recommends build-essential autoconf libtool libssl-dev libpcre3-dev libev-dev asciidoc xmlto automake
-git clone https://github.com/shadowsocks/simple-obfs.git
-cd simple-obfs
-git submodule update --init --recursive
-./autogen.sh
-./configure && make
-sudo make install
+> sudo apt-get install --no-install-recommends build-essential autoconf libtool libssl-dev libpcre3-dev libev-dev asciidoc xmlto automake
+> git clone https://github.com/shadowsocks/simple-obfs.git
+> cd simple-obfs
+> git submodule update --init --recursive
+> ./autogen.sh
+> ./configure && make
+> sudo make install
 
 3】http://shadowsocks.org/en/config/quick-guide.html
 
-~/programming/project/a.yitianjianss.com/yitianjianss-config.json：
+> vim /etc/shadowsocks-libev/config.json：
 {
-    "server":"xx.xx.xx",
-    "server_port":1234,
+    "server":"xx.xxx.com",
+    "server_port":15376,
     "local_port":8087,
-    "password":"abc123",
-    "timeout":600,
-    "method":"aes-256-cfb"
+    "password":"xxx",
+    "timeout":8,
+    "method":"aes-256-cfb",
+    "plugin":"obfs-local",
+    "plugin_opts":"obfs=http;obfs-host=www.bing.com"
 }
 
-4】Usage
+4】Usage 启动：
 
-ss-local -c yitianjianss-config.json --plugin obfs-local --plugin-opts "obfs=http;obfs-host=xx.xx"
+(使用默认配置/etc/shadowsocks-libev/config.json)
+> ss-local 
+
+(配置文件已经有plugin和plugin_opts选项)
+> ss-local -c /data/my-config.json 
+
+(配置文件没有plugin和plugin_opts选项)
+> ss-local -c /data/my-config.json --plugin obfs-local --plugin-opts "obfs=http;obfs-host=www.bing.com" 
 ```
 
 ####  查看系统资源占用
