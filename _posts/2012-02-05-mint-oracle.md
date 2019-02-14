@@ -90,7 +90,7 @@ Oracle-instant-client:
 
 OS-linux：https://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html
 (OS-ALL:https://www.oracle.com/technetwork/database/database-technologies/instant-client/downloads/index.html)
-选择instantclient-basic-win32-11.1.0.7.0 (yx163-Ch17)
+选择instantclient-basic-win32-11.1.0.7.0
 
 打开Navicat for oracle选择tools - options - OCI 选择解压oracle-install-client后的oci文件重启即可
 
@@ -99,8 +99,9 @@ OS-linux：https://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html
 #### Oracle SQL Developer(推荐) [官方页面](https://www.oracle.com/technetwork/developer-tools/sql-developer/downloads/index.html)
 ```
 版本限制：无
-选择：[Other Platforms](http://download.oracle.com/otn/java/sqldeveloper/sqldeveloper-18.3.0.277.2354-no-jre.zip)
-解压安装即可
+选择：[Other Platforms](http://download.oracle.com/otn/java/sqldeveloper/sqldeveloper-18.4.0-376.1900-no-jre.zip)
+
+解压安装即可(yx163-Ch17)
 
 比较好用的功能：
 工具 - 监视会话
