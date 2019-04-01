@@ -32,6 +32,32 @@ ok
 
 ```
 
+#### Redis自启动服务
+
+```
+centos下：
+
+> cp /data/redis/redis-5.0.4/utils/redis_init_script /etc/init.d/redis
+> cd /etc/init.d
+> vim redis (只改动几个属性配置,其它不变，以后redis升级只需要修改REDIS_DIR即可)
+...
+REDIS_DIR=/data/redis/redis-5.0.4
+REDISPORT=6379
+EXEC=$REDIS_DIR/src/redis-server
+CLIEXEC=$REDIS_DIR/src/redis-cli
+
+PIDFILE=/var/run/redis_${REDISPORT}.pid
+CONF="$REDIS_DIR/redis.conf"
+...
+
+> chmod +x redis (默认文件复制过去有可执行权限可以不用执行)
+> chkconfig redis on
+> service redis start
+> service redis stop
+> chkconfig --list | grep redis 查看redis服务是否有自启动开关
+
+```
+
 #### Redis命令相关
 
 ```
@@ -62,6 +88,13 @@ ok
 
 ### nginx相关
 ```
+自动安装(CentOS推荐)：
+http://nginx.org/en/linux_packages.html#RHEL-CentOS
+
+开机自启动（centos7）
+> systemctl enable nginx.service
+> systemctl status nginx
+
 # 查看是否支持多个https到一台机器
 nginx -V
 

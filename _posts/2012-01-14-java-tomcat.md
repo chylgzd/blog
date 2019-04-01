@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Tomcat 相关
-category: [Java,Tomcat,乱码,CentOS6]
+category: [Java,Tomcat,乱码,启动慢,CentOS6]
 comments: false
 ---
 
@@ -245,7 +245,7 @@ SHA1PRNG算法是基于SHA-1算法实现且保密性较强的伪随机数生成�
 有两种解决办法：
 
 1.在Tomcat环境中解决，可以通过配置JRE使用非阻塞的Entropy Source。在catalina.sh中加入这么一行：-Djava.security.egd=file:/dev/./urandom;
-2.在JVM环境中解决，打开$JAVA_PATH/jre/lib/security/java.security这个文件，
+2.在JVM环境中解决，打开$JAVA_HOME/jre/lib/security/java.security这个文件，
 找到下面的内容：securerandom.source=file:/dev/urandom替换成securerandom.source=file:/dev/./urandom
 
 ```

@@ -317,6 +317,25 @@ MRX3F-47B9T-2487J-KWKMF-RPWBY
 
 ```
 
+#### 终端颜色
+
+```
+> vim ~/.bashrc
+# .bashrc
+
+# User specific aliases and functions
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+export PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+
+export JAVA_HOME=/data/jdk1.8.0_181
+```
 
 
 

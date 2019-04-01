@@ -13,6 +13,9 @@ comments: false
 ```
 http://nginx.org/en/download.html
 http://nginx.org/en/linux_packages.html#stable
+自动安装(CentOS推荐)：
+http://nginx.org/en/linux_packages.html#RHEL-CentOS
+
 (node-nginx ->  hiproxy -> https://github.com/hiproxy/hiproxy/blob/master/README-zh.md)
 
 wget http://nginx.org/download/nginx-1.14.0.tar.gz
@@ -28,6 +31,10 @@ ln -s /data/nginx/sbin/nginx /usr/local/bin/nginx
 
 nginx -s stop or reload
 nginx
+
+开机自启动（centos7）
+> systemctl enable nginx.service
+> systemctl status nginx
 ```
 
 #### /alidata/server/nginx/conf/proxy.conf
