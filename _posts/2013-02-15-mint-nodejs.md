@@ -50,6 +50,9 @@ npm config set registry https://registry.npm.taobao.org
 设置缓存文件夹
 npm config set cache "~/programming/tools/nodejs/cache/"
 
+设置临时文件夹
+npm config set tmp "~/programming/tools/nodejs/tmp/"
+
 设置全局文件夹
 npm config set prefix "~/programming/tools/nodejs/npm_home/"
 

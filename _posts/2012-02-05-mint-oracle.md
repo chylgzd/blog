@@ -235,8 +235,16 @@ DROP USER myuser
 
 ```
 
-### Oracle11.2修改密码过程
+### Oracle11.2修改密码（有效期，重试被锁等引起）
 ```
+(由于密码有效期的问题,超过期限不能再登录，生产环境数据连接用户密码应该设置长期)
+
+>> 查看密码有效期并修改为永久：
+SELECT * FROM dba_profiles WHERE profile='DEFAULT' AND resource_name='PASSWORD_LIFE_TIME';
+ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
+ALTER USER mytest IDENTIFIED BY "123@456";
+
+>> 修改密码：
 sqlplus / as sysdba
 或
 sqlplus sys/sysdba
@@ -247,7 +255,7 @@ SQL> conn sys/sys as sysdba;
 -- 查看密码重试次数
 SQL> SELECT RESOURCE_NAME, LIMIT FROM DBA_PROFILES WHERE RESOURCE_NAME = 'FAILED_LOGIN_ATTEMPTS';
 -- 修改密码错误重试次数为无限制，防止用户密码错误被锁
-SQL> ALTER profile default limit failed_login_attempts  UNLIMITED;
+SQL> ALTER profile default limit failed_login_attempts UNLIMITED;
 -- 11.2密码修改后延迟很慢，修改后需要重启服务
 SQL> ALTER SYSTEM SET EVENT = '28401 TRACE NAME CONTEXT FOREVER, LEVEL 1' SCOPE = SPFILE;
 SQL> ALTER USER mytest IDENTIFIED BY "123@456";
