@@ -508,7 +508,144 @@ mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpa
 </settings>
 ```
 
-#### maven 其它语句相关
+### maven私服相关
+
+#### 安装nexus
+```
+> docker pull sonatype/nexus3:3.14.0
+> docker run -d -p 9000:8081 --name nexus -v /data/dev/docker_data/nexus:/nexus-data sonatype/nexus3:3.14.0
+> vim /etc/nginx/conf.d/nexus.xxx.com.conf
+server{
+    listen      80;
+    server_name nexus.xxx.com;
+    location /  {
+        index index.jsp index.html index.htm;
+        proxy_pass http://127.0.0.1:9000;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    }
+}
+```
+
+#### 创建私有仓库
+```
+RepositoriesManage repositories：
+
+正式仓库 mynexus-release  (maven2(hosted) - Release - Strict - Allow redeploy - Validate)
+快照仓库 mynexus-snapshots(maven2(hosted) - Snapshot - Strict - Allow redeploy)
+
+```
+
+#### 创建角色权限
+```
+!!!安全起见必须取消匿名用户：UsersManage users编辑anonymous设置状态Disabled
+
+1.仅供拉取代码用的只读角色nexus-read：
+设置 -> Security -> Roles -> Create Nexus role -> privileges只搜索选择 nx-repository-view-*-*-read 即可 -> 保存
+
+2.部署上传jar的角色nexus-deploy(每创建一个私有仓库都需要加入相关)：
+同上 privileges搜索选择如下：
+nx-repository-view-*-*-read
+
+nx-repository-view-maven2-mynexus-*
+nx-repository-admin-maven2-mynexus-*
+
+nx-repository-view-maven2-mynexus-snapshots-*
+nx-repository-admin-maven2-mynexus-snapshots-*
+
+3.创建用户，选择对应角色即可，用户名密码对应settings.xml文件里的server即可
+
+```
+
+#### 上传jar文件到私服
+
+```
+1.手动方式：
+mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=ojdbc14.jar -Durl=http://xxmaven.com/repository/test -DrepositoryId=nexus-xxxx
+
+2.工程pom.xml文件自动部署，修改完pom.xml和settings.xml配置文件后,
+    如果要发布到快照仓库(默认版本号带SNAPSHOT即可自动识别)：clean -Dmaven.test.skip=true deploy
+    发布到稳定仓库(读取my-release参数,该版本号值不能带SNAPSHOT)： clean -Dmaven.test.skip=true deploy -P my-release)：
+
+	pom.xml...........
+	<version>${deploy.version}</version>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<java_source_version>1.8</java_source_version>
+		<java_target_version>1.8</java_target_version>
+		<file_encoding>UTF-8</file_encoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+		<my.version>0.0.1</my.version>
+		<deploy.version>${my.version}-SNAPSHOT</deploy.version>
+		<skipTests>true</skipTests>
+		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>my-release</id>
+			<properties>
+				<deploy.version>${my.version}</deploy.version>
+			</properties>
+		</profile>
+	</profiles>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version><!--$NO-MVN-MAN-VER$ -->
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<skip>${skipTests}</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>nexus-my</id>
+			<name>Release repository</name>
+			<url>http://nexus.51xfzf.com/repository/mynexus-release/</url>
+		</repository>
+
+		<snapshotRepository>
+			<id>nexus-my</id>
+			<name>Snapshots repository</name>
+			<url>http://nexus.51xfzf.com/repository/mynexus-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+    settings.xml...........
+    <server>
+      <id>nexus-my</id>
+      <username>nexus-deploy</username>
+      <password>xxx</password>
+    </server>
+```
+
+### maven 其它语句相关
 ```
 #安装到本地maven仓库
 mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=/user/data/ojdbc14.jar
