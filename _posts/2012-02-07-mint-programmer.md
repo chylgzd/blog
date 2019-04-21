@@ -187,7 +187,7 @@ server{
 
 ### 安装Let's Encrypt证书
 
-#### 自动方式(推荐)
+#### 自动方式(推荐,最好先手动配置完后再自动)
 ```
 #选择操作系统与http服务，比如ubuntu16-nginx
 https://certbot.eff.org/lets-encrypt/ubuntuxenial-nginx
@@ -206,6 +206,13 @@ https://certbot.eff.org/lets-encrypt/centos6-nginx
 > certbot --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt --register-unsafely-without-email --nginx certonly
 # 生成证书-centos6，
 > ./certbot-auto --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt --register-unsafely-without-email --nginx certonly
+
+# 生成证书-centos7
+> certbot --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt/certbotcfg --register-unsafely-without-email --nginx certonly
+(
+    如果出现ImportError: No module named 'requests.packages.urllib3'
+    尝试运行> pip install --upgrade --force-reinstall 'requests==2.6.0' urllib3
+)
 
 a，多个域名逗号分隔1,2,4
 
@@ -247,6 +254,7 @@ server{
 #重新生成之前的所有证书，执行dry-run模拟测试是否成功：
 > (ubuntu) certbot renew --config-dir /data/webserver/letsencrypt --dry-run
 > (centos6) ./certbot-auto renew --config-dir /data/webserver/letsencrypt --dry-run
+> (centos7) certbot renew --config-dir /data/webserver/letsencrypt/certbotcfg --dry-run
 # 成功后加入真正的定时任务执行
 > certbot renew --config-dir /data/webserver/letsencrypt 
 > vim /data/webserver/letsencrypt/flush_certbot.sh
@@ -255,6 +263,8 @@ server{
 certbot renew --config-dir /data/webserver/letsencrypt
 (centos6：)
 /data/webserver/letsencrypt/certbot-auto renew --config-dir /data/webserver/letsencrypt 
+(centos7：)
+certbot renew --config-dir /data/webserver/letsencrypt/certbotcfg
 nginx -s reload
 
 > crontab -e (无效则使用vim /etc/crontab)

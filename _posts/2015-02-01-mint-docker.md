@@ -149,6 +149,9 @@ vim /etc/fstab
 ###  Docker命令使用：
 
 ```
+修改时区错误问题：
+> docker cp /etc/localtime 容器ID:/etc/localtime
+
 docker run 参数：
 --name 容器别名
 --link 外部容器名：内定别名（如gitlab容器配置--link redis:redisio，其中redisio是内部定的，如果没有规定可以随意，而redis是另外的容器）
