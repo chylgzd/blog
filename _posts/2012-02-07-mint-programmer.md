@@ -629,6 +629,120 @@ JETTY_HOME=/jetty9
 > chkconfig myJettyService01 on
 ```
 
+### aliyun相关
+
+#### oss
+```
+oss权限分离：新建用户子账户（不要添加策略权限），新建Bucket设置选择子账户读写相关权限即可
+测试代码TestAliYunOSS.java：
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.aliyun.oss.ClientConfiguration;
+import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.common.auth.CredentialsProvider;
+import com.aliyun.oss.common.auth.DefaultCredentialProvider;
+import com.aliyun.oss.model.BucketReferer;
+import com.aliyun.oss.model.PutObjectResult;
+
+public class TestAliYunOSS {
+	private String imgURL = "https://mybucket.oss-cn-shanghai.aliyuncs.com";
+	private String endpoint = "http://oss-cn-shanghai.aliyuncs.com";
+	private String accessKeyId = "xxxx";
+	private String accessKeySecret = "xxxxx";
+	private String bucketName = "mybucket";
+
+	private OSSClient ossClient = null;
+
+	// 设置防盗链白名单
+	@Test
+	public void testAddReferer() throws Exception {
+		try {
+			List<String> refererList = new ArrayList<String>();
+			refererList.add("https://*.console.aliyun.com");
+			refererList.add("http://*.mogkh.com");
+			refererList.add("https://*.mogkh.com");
+			BucketReferer br = new BucketReferer(true, refererList);
+			ossClient.setBucketReferer(bucketName, br);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	// 获取防盗链白名单
+	@Test
+	public void testGetReferer() throws Exception {
+		try {
+			BucketReferer br = ossClient.getBucketReferer(bucketName);
+			List<String> refererList = br.getRefererList();
+			for (String referer : refererList) {
+				System.out.println(referer);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	@Before
+	public void init() {
+		try {
+			System.out.println("init...");
+			CredentialsProvider credsProvider = new DefaultCredentialProvider(accessKeyId, accessKeySecret);
+			ClientConfiguration config = new ClientConfiguration();
+			config.setConnectionTimeout(5 * 1000);// 5秒
+			config.setConnectionRequestTimeout(5 * 1000);// 5秒
+			config.setSocketTimeout(15 * 1000);// 15秒
+			config.setRequestTimeout(1 * 60 * 1000);// 1分钟
+			config.setRequestTimeoutEnabled(true);
+			this.ossClient = new OSSClient(endpoint, credsProvider, config);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	@After
+	public void stop() {
+		try {
+			if (this.ossClient != null) {
+				System.out.println("stop...");
+				this.ossClient.shutdown();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	protected String putImageFile(String uId, String fileName, File localFile, InputStream inputStream) {
+		String key = "userdir/" + uId + "/" + fileName;
+		PutObjectResult putObjectResult = null;
+		if (localFile != null) {
+			putObjectResult = ossClient.putObject(bucketName, key, localFile);
+		} else if (inputStream != null) {
+			putObjectResult = ossClient.putObject(bucketName, key, inputStream);
+		}
+		if (putObjectResult == null) {
+			return null;
+		}
+		String etag = putObjectResult.getETag();
+		if (etag == null || etag.isEmpty()) {
+			return null;
+		}
+		return imgURL + "/" + key + "?t=" + etag;
+	}
+}
+```
+
 
 
 

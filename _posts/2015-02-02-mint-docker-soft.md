@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Docker下安装各种软件
-category: [Linux-Mint,Docker,Redis,Mongodb,PostgreSQL,MySQL,Elasticsearch,GitLab,RabbitMQ,JenKins]
+category: [Linux-Mint,Docker,Redis,Mongodb,PostgreSQL,MySQL,Elasticsearch,GitLab,RabbitMQ,JenKins,Nexus]
 comments: false
 ---
 
@@ -94,7 +94,7 @@ http://localhost:8081
 docker pull postgres:latest
 
 启动 postgres：
-docker run --name postgresql -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=123456 -d postgres
+docker run --name postgresql -p 5432:5432 -v /data/dev/docker_data/postgresql/data:/var/lib/postgresql/data -e POSTGRES_USER=root -e POSTGRES_PASSWORD=123456 -d postgres
 通过Navicat或者HeidiSQL建立连接访问测试是否成功
 
 ```
@@ -321,6 +321,40 @@ client.hkeys("hash key", function (err, replies) {
 
 ### 安装 GitLab
 
+#### 快速安装
+
+```
+(redis和postgresql没有映射端口出来，如果有共享的其它程序用可以共享端口共用)
+docker run --name redis -d redis:5.0.4 redis-server --appendonly yes
+docker run --name postgresql -v /data/dev/docker_data/postgresql/data:/var/lib/postgresql/data -e POSTGRES_USER=root -e POSTGRES_PASSWORD=123456 -d postgres:10.7
+docker run --name gitlab11.10.1 -d \
+    --link postgresql:postgresql --link redis:redisio \
+    --publish 10022:22 --publish 10080:80 \
+    --env 'GITLAB_HOST=git.yourdomain.com' --env 'GITLAB_PORT=80' --env 'GITLAB_SSH_PORT=10022' --env 'GITLAB_ROOT_EMAIL=test@test.com' \
+    --env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
+    --env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
+    --env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
+    --env 'GITLAB_TIMEZONE=Beijing' \
+	--volume /data/dev/docker_data/gitlab/data:/home/git/data \
+    sameersbn/gitlab:11.10.1
+
+> vim /etc/nginx/conf.d/git.yourdomain.com.conf
+server {
+    listen       80;
+    server_name git.yourdomain.com;
+    location / {
+        index index.jsp index.html index.htm;
+        proxy_pass http://127.0.0.1:10080;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    }
+}
+
+```
+
+#### 安装说明
+
 ```
 （依赖于已经安装好了的postgresql和redis）
 更多参数配置参考：https://github.com/sameersbn/docker-gitlab
@@ -329,16 +363,16 @@ client.hkeys("hash key", function (err, replies) {
 docker pull sameersbn/gitlab:11.4.3
 
 启动 gitlab（如果有nginx代理到10080端口，则GITLAB_PORT=80）：
-docker run --name gitlab11.4.3 -d \
+docker run --name gitlab11.8.3 -d \
     --link postgresql:postgresql --link redis:redisio \
     --publish 10022:22 --publish 10080:80 \
-    --env 'GITLAB_HOST=git.yourdomain.com' --env 'GITLAB_PORT=80' --env 'GITLAB_SSH_PORT=10022' --env 'GITLAB_ROOT_EMAIL=test@gmail.com' \
+    --env 'GITLAB_HOST=git.yourdomain.com' --env 'GITLAB_PORT=80' --env 'GITLAB_SSH_PORT=10022' --env 'GITLAB_ROOT_EMAIL=test@test.com' \
     --env 'GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_SECRETS_SECRET_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_SECRETS_OTP_KEY_BASE=long-and-random-alpha-numeric-string' \
     --env 'GITLAB_TIMEZONE=Beijing' \
-	--volume /data/docker/gitlab/data:/home/git/data \
-    sameersbn/gitlab:11.4.3
+	--volume /data/dev/docker_data/gitlab/data:/home/git/data \
+    sameersbn/gitlab:11.8.3
 
 用浏览器访问：
 http://localhost:10080
@@ -378,6 +412,28 @@ chmod 777 -R /data/docker/root
 mount --bind  /data/docker/root  /var/lib/docker
 解压备份_data目录到/home/git/data对应--volume映射目录下
 如果出现gitlab相关sudouser.so问题，重新安装gitlab镜像即可
+```
+
+#### 查找docker数据目录默认文件夹(方便迁移复制数据目录，gitlab-docker版本需要保持一致)
+
+```
+> docker inspect postgresql
+找到Mounts节点，Destination表示docker容器内目录，Source表示宿主机目录
+"Mounts": [
+    {
+        "Type": "volume",
+        "Name": "5a1a07a6cd8d997cb7f86cfe44",
+        "Source": "/var/lib/docker/volumes/5a1a07a6cd8d997cb7f86cfe44/_data",
+        "Destination": "/var/lib/postgresql/data",
+        "Driver": "local",
+        "Mode": "",
+        "RW": true,
+        "Propagation": ""
+    }
+]
+
+gitlab 迁移新域名成功后,git remote set-url origin ssh://git@git.yourdomain.com:10022/you/test.git
+
 ```
 
 
@@ -489,11 +545,12 @@ https://hub.tenxcloud.com/repos/docker_library/jenkins
 http://hub.daocloud.io/repos/10e50ad9-7691-4d17-a1ed-c3a0d47d66c0
 
 下载
+docker pull jenkins:2.60.3
 docker pull daocloud.io/library/jenkins:latest
 
 运行
+docker run --name jenkins -p 8081:8080 -p 50000:50000 -v /data/dev/docker_data/jenkins/data:/var/jenkins_home -d jenkins:2.60.3
 docker run --name jenkins -p 8081:8080 -p 50000:50000 -v /home/yourname/soft/jenkins_home:/var/jenkins_home -d daocloud.io/library/jenkins:latest
-
 打开
 localhost:8081
 
@@ -605,5 +662,45 @@ docker logout 192.168.0.22:5000
 sudo cp /etc/docker/certs.d/192.168.0.22:5000/registry.crt /usr/local/share/ca-certificates/192.168.0.22.crt
 sudo update-ca-certificates
 */
+
+```
+
+### 安装nexus，maven私服
+
+```
+> docker pull sonatype/nexus3:3.14.0
+> docker run -d -p 9000:8081 --name nexus -v /data/dev/docker_data/nexus:/nexus-data sonatype/nexus3:3.14.0
+> vim /etc/nginx/conf.d/nexus.yourdomain.com.conf
+server {
+    listen       80;
+    server_name nexus.yourdomain.com;
+    location / {
+        index index.jsp index.html index.htm;
+        proxy_pass http://127.0.0.1:9000;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    }
+}
+
+```
+
+### 安装showdoc，文档服务
+
+```
+> docker pull star7th/showdoc:v2.4.11
+> docker run --name showdoc -p 4999:80 -v /data/dev/docker_data/showdoc/html:/var/www/html/ -d star7th/showdoc:v2.4.11
+> vim /etc/nginx/conf.d/showdoc.yourdomain.com.conf
+server {
+    listen       80;
+    server_name showdoc.yourdomain.com;
+    location / {
+        index index.jsp index.html index.htm;
+        proxy_pass http://127.0.0.1:4999;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    }
+}
 
 ```

@@ -40,23 +40,47 @@ subdomain = dev
 服务端nginx配置vim /etc/nginx/conf.d/dev.mytest.com.conf:
 server {
     listen       80;
-    server_name dev.mytest.com www.dev.mytest.com;
+    server_name dev.mytest.com;
     location ~ ^/(WEB-INF)/ {
         deny all;
     }
     location / {
-                index index.jsp index.html index.htm;
-                proxy_pass http://127.0.0.1:7000;
-                proxy_set_header   Host             $host;
-                proxy_set_header   X-Real-IP        $remote_addr;
-                proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        index index.jsp index.html index.htm;
+        proxy_pass http://127.0.0.1:7000;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
     }
 
 }
 nginx -s reload
 启动服务端：./frps -c ./frps.ini
+
+客户端nginx配置vim /etc/nginx/conf.d/dev.mytest.com.conf:
+server {
+    listen       80;
+    server_name dev.mytest.com;
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    location / {
+        root /data/www/dist;
+        index index.html index.htm;
+        access_log off;
+        expires 1d;
+    }
+    location /back-end {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+    }
+}
 启动客户端：./frpc -c ./frpc.ini
-启动本地eclipse或其它web工程并设置为8080端口
+启动本地eclipse或其它web工程并设置为8080端口（对应本地nginx的/back-end）
 其它外网机器通过dev.mytest.com即可访问到内网机器进行远程调试
 
 ```

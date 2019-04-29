@@ -143,6 +143,26 @@ vim /etc/fstab
 /data/docker/root /var/lib/docker                 none    bind        0 0
 
 
+``` 
+
+#### 查找docker数据目录默认文件夹(方便迁移复制数据目录)
+
+```
+> docker inspect postgresql
+找到Mounts节点，Destination表示docker容器内目录，Source表示宿主机目录
+"Mounts": [
+    {
+        "Type": "volume",
+        "Name": "5a1a07a6cd8d997cb7f86cfe44",
+        "Source": "/var/lib/docker/volumes/5a1a07a6cd8d997cb7f86cfe44/_data",
+        "Destination": "/var/lib/postgresql/data",
+        "Driver": "local",
+        "Mode": "",
+        "RW": true,
+        "Propagation": ""
+    }
+]
+
 ```
 
 

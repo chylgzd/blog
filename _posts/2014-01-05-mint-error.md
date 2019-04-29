@@ -130,3 +130,16 @@ setopt no_nomatch
 
 ```
 
+#### ssh远程登陆很慢的问题
+```
+首先调试连接，看问题慢在哪一行：
+> ssh -v root@112.124.200.228
+
+如果停留在debug1: Next authentication method: gssapi-with-mic很慢添加DNS
+> vim /etc/resolv.conf
+nameserver 223.5.5.5
+nameserver 223.6.6.6
+
+```
+
+
