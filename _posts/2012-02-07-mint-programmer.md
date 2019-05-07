@@ -271,7 +271,86 @@ nginx -s reload
 0 0 1 * * root /data/webserver/letsencrypt/flush_certbot.sh >/dev/null 2>&1
 ```
 
-#### 手动方式
+#### 手动方式1
+```
+> vim /etc/nginx/conf.d/my.test.com.conf
+
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name my.test.com;
+    #ssl_certificate /data/webtest/letsencrypt/my.test.com/ssl/chained.pem;
+    #ssl_certificate_key /data/webtest/letsencrypt/my.test.com/ssl/domain.key;
+    ssl_session_tickets on;
+    location ^~ /.well-known/acme-challenge/ {
+        alias /data/webtest/letsencrypt/my.test.com/www/challenges/;
+        try_files $uri =404;
+    }
+    #if ($scheme = http) {
+    #   rewrite ^/(.*)$ https://my.test.com/$1 permanent;
+    #}
+}
+
+> nginx -s reload
+
+> vim /usr/local/aegis/globalcfg/letsencrypt.sh (使用 ./letsencrypt.sh my.test.com)
+
+#!/bin/bash
+# /etc/ssl/openssl.cnf(ubuntu) or /etc/pki/tls/openssl.cnf (centos)
+
+if [ $# -eq 0 ];then
+echo "domain is null!!"
+exit 0
+fi
+
+domain=$1
+letsencrypt_dir=/data/webtest/letsencrypt
+openssl_cnf=/etc/pki/tls/openssl.cnf
+
+ssl_dir=$letsencrypt_dir/$domain/ssl
+challenges_dir=$letsencrypt_dir/$domain/www/challenges/
+
+mkdir -p $ssl_dir
+mkdir -p $challenges_dir
+
+cd $ssl_dir
+
+openssl genrsa 4096 > account.key
+openssl ecparam -genkey -name secp384r1 | openssl ec -out domain.key
+openssl req -new -sha256 -key domain.key -subj "/" -reqexts SAN -config <(cat $openssl_cnf <(printf "[SAN]\nsubjectAltName=DNS:$domain")) > domain.csr
+
+wget https://raw.githubusercontent.com/diafygi/acme-tiny/master/acme_tiny.py
+
+echo $$challenges_dir
+# vim nginx config
+# location ^~ /.well-known/acme-challenge/ {
+#    alias $challenges_dir;
+#    try_files $uri =404;
+# }
+
+python acme_tiny.py --account-key ./account.key --csr ./domain.csr --acme-dir $challenges_dir > ./signed.crt
+
+wget -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > intermediate.pem
+cat signed.crt intermediate.pem > chained.pem
+wget -O - https://letsencrypt.org/certs/isrgrootx1.pem > root.pem
+cat intermediate.pem root.pem > full_chained.pem
+
+echo ssl_certificate $ssl_dir/chained.pem;
+echo ssl_certificate_key $ssl_dir/domain.key;
+echo ssl_session_tickets on;
+
+# vim nginx config
+#ssl_certificate $ssl_dir/chained.pem;
+#ssl_certificate_key $ssl_dir/domain.key;
+#ssl_session_tickets on;
+
+> vim /etc/nginx/conf.d/my.test.com.conf 去掉ssl注释#
+
+> nginx -s reload
+
+```
+
+#### 手动方式2
 ```
 参考：
 https://imququ.com/post/letsencrypt-certificate.html
@@ -302,6 +381,9 @@ server {
         alias /data/dev/letsencrypt/mytest.com/www/challenges/;
         try_files $uri =404;
     }
+    #if ($scheme = http) {
+    #    rewrite ^/(.*)$ https://pay.dmpzg.com/$1 permanent;
+    #}
     location / {
         rewrite ^/(.*)$ https://mytest.com/$1 permanent;
         #rewrite ^(.*)$  https://$host$1 permanent;(当server_name为多个域名的时候)

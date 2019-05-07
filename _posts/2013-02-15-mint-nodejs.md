@@ -21,14 +21,14 @@ https://nodejs.org/en/download/package-manager
 
 ###  下载linux安装包并解压  
 查看页面版本 [latest-v6](https://nodejs.org/dist/latest-v6.x)   国内[taobao下载v6](https://npm.taobao.org/mirrors/node/latest-v6.x/),[其它镜像](https://npm.taobao.org/mirrors/node/)
-找到.xz连接地址如：https://nodejs.org/dist/latest-v6.x/node-v6.2.1-linux-x64.tar.xz  
-按照以下步骤将会安装到 ~/programming/tools/nodejs/node_home 文件夹  
+找到.xz连接地址如：wget https://nodejs.org/download/release/v8.15.1/node-v8.15.1-linux-x64.tar.gz
+按照以下步骤将会安装到 /data/nodejs/node_home 文件夹  
 以后版本更新的时候只需要执行这个步骤就行  
 
 ```
 cd /tmp
 wget -O nodejs.tar.xz https://nodejs.org/dist/latest-v6.x/node-v6.2.1-linux-x64.tar.xz
-mkdir -p ~/programming/tools/nodejs/node_home && rm -rf ~/programming/tools/nodejs/node_home/* && tar -Jxvf ./nodejs.tar.xz  -C ~/programming/tools/nodejs/node_home --strip-components 1
+mkdir -p /data/nodejs/node_home && rm -rf /data/nodejs/node_home/* && tar -Jxvf ./nodejs.tar.xz  -C /data/nodejs/node_home --strip-components 1
 ```
 
 ###  手动添加link
@@ -37,7 +37,14 @@ mkdir -p ~/programming/tools/nodejs/node_home && rm -rf ~/programming/tools/node
 /usr/bin/env: node: No such file or directory
 
 则需手动添加link node 到~/bin目录
-ln -sf ~/programming/tools/nodejs/node_home/bin/node ~/bin/node
+
+mkdir -p /data/nodejs/node_home
+mkdir -p /data/nodejs/cache
+mkdir -p /data/nodejs/tmp
+mkdir -p /data/nodejs/prefix
+
+ln -s /data/nodejs/node_home/bin/node /usr/local/bin/node
+ln -s /data/nodejs/node_home/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 ```
 
 ### npm config 配置 ([更多参考](https://docs.npmjs.com/files/npmrc))
@@ -48,13 +55,13 @@ ln -sf ~/programming/tools/nodejs/node_home/bin/node ~/bin/node
 npm config set registry https://registry.npm.taobao.org
 
 设置缓存文件夹
-npm config set cache "~/programming/tools/nodejs/cache/"
+npm config set cache "/data/nodejs/cache/"
 
 设置临时文件夹
-npm config set tmp "~/programming/tools/nodejs/tmp/"
+npm config set tmp "/data/nodejs/tmp/"
 
 设置全局文件夹
-npm config set prefix "~/programming/tools/nodejs/npm_home/"
+npm config set prefix "/data/nodejs/prefix/"
 
 设置electron镜像，默认下载文件在~/.electron/目录(electron >=1.6.10 && electron-packager >= 8.7.0 && nodejs>=8.0.0 && npm>=5.0.2)
 npm config set electron_mirror https://npm.taobao.org/mirrors/electron/

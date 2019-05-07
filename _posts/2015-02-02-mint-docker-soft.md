@@ -549,8 +549,7 @@ docker pull jenkins:2.60.3
 docker pull daocloud.io/library/jenkins:latest
 
 运行
-docker run --name jenkins -p 8081:8080 -p 50000:50000 -v /data/dev/docker_data/jenkins/data:/var/jenkins_home -d jenkins:2.60.3
-docker run --name jenkins -p 8081:8080 -p 50000:50000 -v /home/yourname/soft/jenkins_home:/var/jenkins_home -d daocloud.io/library/jenkins:latest
+docker run --name jenkins -p 8081:8080 -p 50000:50000 -v /data/dev/docker_data/jenkins/data:/var/jenkins_home -e JAVA_OPTS=-Duser.timezone=Asia/Shanghai -d jenkins:2.60.3 
 打开
 localhost:8081
 
