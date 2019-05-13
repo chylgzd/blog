@@ -277,7 +277,7 @@ nginx -s reload
 
 server {
     listen 80;
-    listen 443 ssl;
+    #listen 443 ssl;
     server_name my.test.com;
     #ssl_certificate /data/webtest/letsencrypt/my.test.com/ssl/chained.pem;
     #ssl_certificate_key /data/webtest/letsencrypt/my.test.com/ssl/domain.key;
@@ -289,6 +289,21 @@ server {
     #if ($scheme = http) {
     #   rewrite ^/(.*)$ https://my.test.com/$1 permanent;
     #}
+    location / {
+        root /data/www/static;
+	    index index.html index.htm
+        access_log off;
+        expires 1d;
+    }
+    location /backend/m-test {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    }
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
 }
 
 > nginx -s reload
