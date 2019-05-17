@@ -176,7 +176,7 @@ ps -ef |grep springboot | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/nu
 
 3】http://shadowsocks.org/en/config/quick-guide.html
 
-> vim /etc/shadowsocks-libev/config.json：
+> vim /etc/shadowsocks-libev/config_obfs.json(obfs方式)：
 {
     "server":"xx.xxx.com",
     "server_port":15376,
@@ -185,12 +185,22 @@ ps -ef |grep springboot | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/nu
     "timeout":8,
     "method":"aes-256-cfb",
     "plugin":"obfs-local",
-    "plugin_opts":"obfs=http;obfs-host=www.bing.com"
+    "plugin_opts":"obfs=http;obfs-host=bing.com"
+}
+
+> vim /etc/shadowsocks-libev/config.json（原始方式）：
+{
+    "server":"xx.xxx.com",
+    "server_port":15376,
+    "local_port":8087,
+    "password":"xxx",
+    "timeout":8,
+    "method":"aes-256-cfb"
 }
 
 4】Usage 启动：
 
-(使用默认配置/etc/shadowsocks-libev/config.json)
+(默认ss-local命令会使用配置/etc/shadowsocks-libev/config.json)
 > ss-local 
 
 (配置文件已经有plugin和plugin_opts选项)
@@ -198,6 +208,25 @@ ps -ef |grep springboot | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/nu
 
 (配置文件没有plugin和plugin_opts选项)
 > ss-local -c /data/my-config.json --plugin obfs-local --plugin-opts "obfs=http;obfs-host=www.bing.com" 
+
+(使用双配置脚本,加任意一个参数即可切换到原始方式)
+> vim ~/bin/sds.sh
+#!/bin/sh
+
+cfg="/etc/shadowsocks-libev/config_obfs.json"
+if [ $# -eq 1 ];then
+
+echo "use config.json..."
+cfg="/etc/shadowsocks-libev/config.json"
+
+else
+
+echo "use config_obfs.json..."
+
+fi
+
+ss-local -c $cfg
+
 ```
 
 ####  查看系统资源占用
