@@ -191,6 +191,9 @@ sudo service docker stop
 docker images
 docker rmi 镜像ID
 
+删除所有空标签的镜像
+docker images|sed "1 d"|grep "<none>" |awk '{print $3}' |xargs docker rmi
+
 查看所有容器状态：
 docker ps -a
 

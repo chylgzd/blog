@@ -142,4 +142,14 @@ nameserver 223.6.6.6
 
 ```
 
+#### 乱码locale: Cannot set LC_CTYPE/LC_ALL to default locale: No such file or directory
+```
+> locale -a | grep zh 没有中文zh
+
+ubuntu系统下远程登录命令控制台输入中文乱码的解决方法：
+> vim /etc/environment 
+LC_ALL=en_US.UTF-8
+LANG=en_US.UTF-8
+
+```
 

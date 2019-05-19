@@ -700,3 +700,14 @@ https://search.maven.org/
 https://mvnrepository.com/
 ```
 
+### maven相关问题
+
+```
+1.清理更新文件：
+> find ~/pro/maven/repo/ -name *lastUpdated.properties | xargs rm -f
+
+
+```
+
+
+
