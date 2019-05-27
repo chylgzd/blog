@@ -1,7 +1,7 @@
 ---
 layout: post
-title: 安装Docker
-category: [Docker]
+title: Docker,Kubernetes相关
+category: [docker,kubectl]
 comments: false
 ---
 
@@ -14,7 +14,7 @@ comments: false
 
 [http://www.widuu.com/chinese_docker/installation/ubuntu.html](http://www.widuu.com/chinese_docker/installation/ubuntu.html)
 
-### 安装配置
+### 安装docker
 
 ```bash
 
@@ -235,7 +235,7 @@ docker inspect -f "{{  _State_Pid  }}" redis-web
 sudo nsenter -t 进程PID -m -u -i -n -p
 ```
 
-### Dockerfile创建docker镜像
+### 使用Dockerfile创建docker镜像
 
 ```
 cd /tmp
@@ -279,5 +279,34 @@ sudo env ROLE=agent CONTROLLER_IP=192.168.0.33 CONTROLLER_PORT=1016 CSPHERE_VERS
 在客户机执行即可
 ```
 
+### Kubernetes相关
+
+#### kubectl命令(管理Kubernetes集群的工具)
+```
+创建容器根据yaml：
+> kubectl create -f /tmp/my-app.yaml
+
+创建容器根据镜像
+> kubectl run my-app --image registry.cn-huhehaote.aliyuncs.com/mytest/my-app:0.01
+
+查看是否创建容器成功(会一直阻塞直到状态成功)
+> kubectl rollout status deployment/my-app
+
+进入容器：
+> kubectl exec -it my-app-5f9dx4fb --container my-app -- /bin/sh
+
+创建网络服务（可以手动在阿里云创建，不用删除）
+> kubectl expose deployment my-app --port=7070 --target-port=8080 --name=my-app-svc --type=LoadBalancer
+
+删除my-app所有包括网络服务
+> kubectl delete deployment my-app
+
+只删除my-app容器，不包括服务
+> kubectl delete deployments/my-app
+
+删除my-app容器和网络访问服务
+> kubectl delete deployments/my-app services/my-app-svc
+
+```
 
 

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 开发运维相关
-category: [Linux-Mint,CentOs6,SpringBoot,Redis,证书,Jenkins,自动打包部署,Nginx,Jetty]
+category: [Linux-Mint,CentOs6,SpringBoot,Redis,证书,Jenkins,自动打包部署,Nginx,Jetty,kubectl]
 comments: false
 ---
 
@@ -838,6 +838,324 @@ public class TestAliYunOSS {
 		return imgURL + "/" + key + "?t=" + etag;
 	}
 }
+```
+
+
+### springboot2-docker-aliyunserverless
+
+#### boot2-parent-pom/pom.xml
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.5.RELEASE</version>
+	</parent>
+
+	<groupId>com.kehong</groupId>
+	<artifactId>boot2-parent-pom</artifactId>
+	<name>boot2-parent-pom</name>
+	<packaging>pom</packaging>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<properties>
+		<!-- 系统变量 -->
+		<java.version>1.8</java.version>
+		<java_source_version>1.8</java_source_version>
+		<java_target_version>1.8</java_target_version>
+		<file_encoding>UTF-8</file_encoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+		<!-- 工程变量 -->
+		<skipTests>true</skipTests>
+
+		<!-- jar包变量 -->
+		<mybatis-plus-boot-starter.version>3.1.1</mybatis-plus-boot-starter.version>
+		<HikariCP.version>3.3.1</HikariCP.version>
+		<fastjson.version>1.2.58</fastjson.version>
+		<mysql.version>8.0.16</mysql.version>
+		<ojdbc6.version>11.2.0.4.0</ojdbc6.version>
+		<velocity-engine-core.version>2.0</velocity-engine-core.version>
+		<hutool-all.version>4.5.10</hutool-all.version>
+		<easypoi.version>3.0.1</easypoi.version>
+		<swagger.version>2.8.0</swagger.version>
+
+		<!-- 插件变量 -->
+		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<!-- docker -->
+		<dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
+		<docker.image.prefix>mydocker</docker.image.prefix>
+	</properties>
+
+	<!-- 统一包定义 -->
+	<dependencyManagement>
+		<dependencies>
+			<!-- spring-cloud -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>Edgware.SR3</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<!-- mybatis-plus -->
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>${mysql.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.oracle.jdbc</groupId>
+				<artifactId>ojdbc6</artifactId>
+				<version>${ojdbc6.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.zaxxer</groupId>
+				<artifactId>HikariCP</artifactId>
+				<version>${HikariCP.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.baomidou</groupId>
+				<artifactId>mybatis-plus-boot-starter</artifactId>
+				<version>${mybatis-plus-boot-starter.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>tomcat-jdbc</artifactId>
+						<groupId>org.apache.tomcat</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.baomidou</groupId>
+				<artifactId>mybatis-plus-generator</artifactId>
+				<version>${mybatis-plus-boot-starter.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<!-- fastjson -->
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>fastjson</artifactId>
+				<version>${fastjson.version}</version>
+			</dependency>
+
+			<!-- velocity -->
+			<dependency>
+				<groupId>org.apache.velocity</groupId>
+				<artifactId>velocity-engine-core</artifactId>
+				<version>${velocity-engine-core.version}</version>
+			</dependency>
+
+			<!-- hutool -->
+			<dependency>
+				<groupId>cn.hutool</groupId>
+				<artifactId>hutool-all</artifactId>
+				<version>${hutool-all.version}</version>
+			</dependency>
+
+			<!-- easypoi -->
+			<dependency>
+				<groupId>cn.afterturn</groupId>
+				<artifactId>easypoi-base</artifactId>
+				<version>${easypoi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>cn.afterturn</groupId>
+				<artifactId>easypoi-annotation</artifactId>
+				<version>${easypoi.version}</version>
+			</dependency>
+
+			<!-- swagger -->
+			<dependency>
+				<groupId>io.springfox</groupId>
+				<artifactId>springfox-swagger-ui</artifactId>
+				<version>${swagger.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.springfox</groupId>
+				<artifactId>springfox-swagger2</artifactId>
+				<version>${swagger.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<!-- 公用包配置 -->
+	<dependencies>
+		<!-- log4j2 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<!-- 统一构建插件定义 -->
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+					<configuration>
+						<executable>true</executable>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>com.spotify</groupId>
+					<artifactId>dockerfile-maven-plugin</artifactId>
+					<version>${dockerfile-maven-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>default</id>
+							<goals>
+								<goal>build</goal>
+								<goal>push</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<dockerInfoDirectory>${project.basedir}/docker</dockerInfoDirectory>
+						<repository>${docker.image.prefix}/${project.artifactId}</repository>
+						<tag>${project.version}</tag>
+						<buildArgs>
+							<MY_JAR_FILE>${project.build.finalName}.jar</MY_JAR_FILE>
+						</buildArgs>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version><!--$NO-MVN-MAN-VER$ -->
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<skip>${skipTests}</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+```
+
+#### Springboot2子项目根目录/Dockerfile
+
+```sh
+FROM openjdk:8-jdk-alpine
+
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo 'Asia/Shanghai' >/etc/timezone
+
+ARG MY_JAR_FILE
+ADD target/${MY_JAR_FILE} /usr/local/myapp/app.jar
+ENTRYPOINT ["/usr/bin/java","-Djava.security.egd=file:/dev/./urandom","-Dspring.profiles.active=test","-jar","/usr/local/myapp/app.jar"]
+
+```
+
+#### 打包Springboot2子项目并发布到aliyun镜像
+
+```
+> mvn clean package dockerfile:build
+本地运行
+> docker run --name 容器名称 -p 8081:8080 -d 镜像:标签
+
+> docker login --username=用户名 registry.cn-hangzhou.aliyuncs.com 
+> docker tag [本地容器镜像ID] registry.cn-hangzhou.aliyuncs.com/命名空间/仓库名:版本号
+> docker push registry.cn-hangzhou.aliyuncs.com/命名空间/仓库名:版本号
+```
+
+#### 阿里云Kubernetes集群使用Springboot镜像并运行
+
+```
+1.容器服务 -> 集群 -> 创建Serverless Kubernetes（公测）
+
+2.从https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG.md下载最新的kubectl客户端
+
+3.复制$HOME/.kube/config安装和设置kubectl客户端ln -s /usr/local/bin/kubectl指向下载kubectl文件
+
+4.应用 - 无状态 - 使用镜像创建 - 选择私有镜像(打包上传的springboot)
+
+5.路由服务（访问方式以供外网访问,内部访问方便容器地址使用内网） - 负载均衡公网访问 - 容器端口（springboot启动端口） - 服务端口(外网开放端口)
+
+6.完成创建，外网访问即可
+
+7. 复制更多查看yaml文件myapp.yaml，把多余自动创建的时间等状态信息去掉即可成为自动打包部署的yaml文件。
+```
+
+#### 自动打包部署到阿里云脚本(依赖于myapp.yaml)
+
+```sh
+deploy_dir=/data/dev/deploy/myapp
+project_dir=$deploy_dir/myapp
+
+cd $project_dir
+
+git remote prune origin
+
+if [ $# -eq 0 ];then
+echo "分支名不能为空!"
+git branch -la
+exit 0
+fi
+
+branch_name=test
+git pull
+git reset --hard origin/$branch_name
+git checkout $branch_name
+git pull
+
+mvn clean package dockerfile:build
+docker tag mydocker/myapp:0.01 registry-vpc.cn-huhehaote.aliyuncs.com/mydocker/myapp:0.01
+docker push registry-vpc.cn-huhehaote.aliyuncs.com/mydocker/myapp:0.01
+
+cd $deploy_dir
+kubectl delete deployments/myapp
+
+echo "delete status..."
+kubectl rollout status deployment/myapp
+
+kubectl create -f myapp.yaml
+
+echo "create status..."
+kubectl rollout status deployment/myapp
+
 ```
 
 
