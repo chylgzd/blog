@@ -1116,7 +1116,7 @@ ENTRYPOINT ["/usr/bin/java","-Djava.security.egd=file:/dev/./urandom","-Dspring.
 
 6.完成创建，外网访问即可
 
-7. 复制更多查看yaml文件myapp.yaml，把多余自动创建的时间等状态信息去掉即可成为自动打包部署的yaml文件。
+7. 复制更多查看yaml文件myapp.yaml，把多余自动创建的时间等状态信息去掉即可成为自动打包部署的yaml模板文件。
 ```
 
 #### 自动打包部署到阿里云脚本(依赖于myapp.yaml)
@@ -1124,9 +1124,14 @@ ENTRYPOINT ["/usr/bin/java","-Djava.security.egd=file:/dev/./urandom","-Dspring.
 ```sh
 deploy_dir=/data/dev/deploy/myapp
 project_dir=$deploy_dir/myapp
+prod_cfgdir=$deploy_dir/prod_cfg
 
 cd $project_dir
 
+docker rmi registry-vpc.cn-huhehaote.aliyuncs.com/mydocker/myapp:0.01
+#docker rmi registry-vpc.cn-huhehaote.aliyuncs.com/mydocker/myapp:0.01-prod
+docker rmi mydocker/myapp:0.01
+docker images|sed "1 d"|grep "<none>" |awk '{print $3}' |xargs docker rmi
 git remote prune origin
 
 if [ $# -eq 0 ];then
@@ -1136,14 +1141,25 @@ exit 0
 fi
 
 branch_name=test
+#branch_name=master
 git pull
 git reset --hard origin/$branch_name
 git checkout $branch_name
 git pull
 
+#if prod
+#(
+#sed -i "s/spring.profiles.active=dev/spring.profiles.active=prod/g" $project_dir/src/main/resources/application.properties
+#cp -rf $prod_cfgdir/Dockerfile $project_dir/
+#rm -rf $project_dir/src/main/resources/application-*.properties
+#cp -rf $prod_cfgdir/application-prod.properties $project_dir/src/main/resources/
+#)
+
 mvn clean package dockerfile:build
 docker tag mydocker/myapp:0.01 registry-vpc.cn-huhehaote.aliyuncs.com/mydocker/myapp:0.01
+#docker tag mydocker/myapp:0.01 registry-vpc.cn-huhehaote.aliyuncs.com/mydocker/myapp:0.01-prod
 docker push registry-vpc.cn-huhehaote.aliyuncs.com/mydocker/myapp:0.01
+#docker push registry-vpc.cn-huhehaote.aliyuncs.com/mydocker/myapp:0.01-prod
 
 cd $deploy_dir
 kubectl delete deployments/myapp
@@ -1152,6 +1168,7 @@ echo "delete status..."
 kubectl rollout status deployment/myapp
 
 kubectl create -f myapp.yaml
+#kubectl create -f $prod_cfgdir/myapp-prod.yaml
 
 echo "create status..."
 kubectl rollout status deployment/myapp

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Docker,Kubernetes相关
-category: [docker,kubectl]
+category: [Docker,Kubectl]
 comments: false
 ---
 
@@ -281,7 +281,7 @@ sudo env ROLE=agent CONTROLLER_IP=192.168.0.33 CONTROLLER_PORT=1016 CSPHERE_VERS
 
 ### Kubernetes相关
 
-#### kubectl命令(管理Kubernetes集群的工具)
+#### kubectl命令(管理Kubernetes集群的工具https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG.md)
 ```
 创建容器根据yaml：
 > kubectl create -f /tmp/my-app.yaml
