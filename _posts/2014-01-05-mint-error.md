@@ -153,3 +153,14 @@ LANG=en_US.UTF-8
 
 ```
 
+#### 缺少相应字体JAVA程序生成图片中文字乱码
+```
+添加相应字体到该目录，比如黑体simhei.ttf:
+/usr/local/share/fonts/simhei.ttf
+
+刷新字体缓存
+sudo fc-cache -fv /usr/local/share/fonts
+
+```
+
+
