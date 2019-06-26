@@ -71,7 +71,7 @@ SQL> exit;
 全部导入
 [oracle@126dx7c /]$ > impdp 'mytestusr/123456@helowin' full=Y directory=dump_dir dumpfile=expdp_mytestusr_full.dmp logfile=impdp.log TABLE_EXISTS_ACTION=REPLACE
 或
-[oracle@126dx7c /]$ > impdp mytestusr/123456@helowin directory=dump_dir dumpfile=expdp_mytestusr_full.dmp tables=mytestusr.tb_test remap_schema=mytestusr_prod:mytestusr logfile=impdp.log
+[oracle@126dx7c /]$ > impdp mytestusr/123456@helowin directory=dump_dir dumpfile=expdp_mytestusr_full.dmp tables=mytestusr.tb_test,tb_test2 remap_schema=mytestusr_prod:mytestusr logfile=impdp.log
 
 导入结束后日志里有警告的sql，需要手动执行那些报错的sql
 
@@ -165,6 +165,10 @@ SQL> alter tablespace UNDOTBS1 online;
 #### 数据泵方式备份
 ```
 expdp mytestusr/123456@helowin compression=all schemas=mytestusr directory=dumpdir dumpfile=FULL_BACKUP%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.dmp logfile=expdp_%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%.log
+
+如果出现UDE-00010: 已请求多个作业模式, schema 和 tables
+这个说明参数schema、参数tablespace、参数table（以及其他数据库对象类型）三者不能同时出现，一次只能出现一个参数的作业模式
+有可能是schema和tables同时出现导致
 
 ```
 

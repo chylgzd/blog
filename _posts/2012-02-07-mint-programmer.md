@@ -134,6 +134,34 @@ http {
     ...
 }
 
+# 允许最大文件上传1M
+> vim /etc/nginx/nginx.conf
+http {
+    ...
+    client_max_body_size 1m;
+    ...
+}
+> vim /etc/nginx/conf.d/www.mytest.com.conf
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name www.mytest.com;
+    error_page 413 =200 @413;
+    location @413 {
+         default_type application/json;
+         return 413 '{"code":"EF0001","msg":"文件超过1M"}';
+    }
+    location / {
+        root /data/www/dist;
+        index index.html index.htm;
+        if_modified_since before;
+        access_log off;
+        etag off;
+        expires 1h;
+    }
+    ...
+}
+
 #禁用ip访问
 > vim /etc/nginx/conf.d/default.conf
 server{
@@ -146,10 +174,14 @@ server{
 
 server{
     listen       80;
+    #listen       443 ssl;
     server_name test.com www.test.com;
     error_page 502 =502 @502;
     error_page 503 =503 @503;
     error_page 504 =504 @504;
+    #if ($scheme = http) {
+    #    rewrite ^/(.*)$ https://www.test.com/$1 permanent;
+    #}
     location @502 {
          default_type application/json;
          return 502 '{"code":"502","msg":"Bad Gateway","success":false,"result":null}';
@@ -165,11 +197,13 @@ server{
     location ~ ^/(WEB-INF)/ {
         deny all;
     }
-    #location ~ \.(htm|html|gif|jpg|jpeg|png|ico|rar|css|js|zip|txt|flv|swf|doc|ppt|xls|pdf)$ {
+    #location ~ \.(htm|html|gif|jpg|jpeg|png|ico|rar|css|js|zip|txt|flv|swf|doc|ppt|xls|pdf)$ {}
     location / {
         root /data/www/myhtml/dist;
         index index.html index.htm;
+        if_modified_since before;
         access_log off;
+        etag off;
         expires 1d;
     }
     location /test/m-demo {
