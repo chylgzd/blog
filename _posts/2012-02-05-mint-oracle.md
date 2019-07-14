@@ -113,6 +113,8 @@ OS-linux：https://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html
 ```
 
 ### Oracle表空间迁移
+
+#### 表空间物理文件从一个磁盘迁移到另一个磁盘
 ```
 sqlplus /nolog
 SQL> connect /as sysdba;
@@ -157,6 +159,19 @@ SQL> alter tablespace SYSAUX online;
 SQL> alter tablespace USERS online;
 SQL> alter tablespace TBS_MYTEST online;
 SQL> alter tablespace UNDOTBS1 online;
+
+```
+
+#### 单个表从旧表空间迁移到新的表空间
+```
+tb_test 表 迁移到 表空间 tablespace_new：
+
+迁移tb_test表空间：
+ALTER TABLE tb_test MOVE TABLESPACE tablespace_new;
+
+重建tb_test表相关索引：
+ALTER INDEX tb_test_primary_key REBUILD TABLESPACE tablespace_new;
+ALTER INDEX tb_test_time_index REBUILD TABLESPACE tablespace_new;
 
 ```
 

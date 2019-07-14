@@ -100,6 +100,36 @@ nginx -V
 
 TLS SNI support enabled
 
+# www域名跳转到非www域名
+server {
+    listen 80;
+    server_name www.test.com;
+    return 301 https://test.com$request_uri;
+}
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name test.com;
+    ssl_certificate /data/webserver/letsencrypt/certbotcfg/live/test.com/fullchain.pem;
+    ssl_certificate_key /data/webserver/letsencrypt/certbotcfg/live/test.com/privkey.pem;
+    ssl_trusted_certificate /data/webserver/letsencrypt/certbotcfg/live/test.com/chain.pem;
+    ssl_session_tickets on;
+    location ^~ /.well-known/acme-challenge/ {
+        alias /data/webserver/letsencrypt/test.com/www/challenges/;
+        try_files $uri =404;
+    }
+    if ($scheme = http) {
+        rewrite ^/(.*)$ https://test.com/$1 permanent;
+    }
+    location / {
+        root /data/nginx/html;
+        index index.html index.htm;
+        if_modified_since before;
+        etag off;
+        access_log off;
+        expires 1d;
+    }
+}
 
 # 强制跳转HTTPS的
 server{
