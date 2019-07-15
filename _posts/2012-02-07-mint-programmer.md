@@ -617,9 +617,50 @@ nginx -s reload
 </Configuration>
 ```
 
+#### 通用nohup方式
+```
+部署目录结构：
+deploy/xxx/spring-boot-project
+deploy/xxx/run
+deploy
+    xxx
+        run
+            spring-boot-project-0.0.1.conf
+            spring-boot-project-0.0.1.jar
+            log4j2_test.xml
+            start.sh
+            stop.sh
+        spring-boot-project
+            src
+> cd xxx/spring-boot-project && mvn clean package && mv target/spring-boot-project-0.0.1.jar run/
+
+> vim run/spring-boot-project-0.0.1.conf
+LOG_FOLDER=/data/logs
+JAVA_HOME="/usr/local/java/jdk8202"
+JAVA_OPTS="-Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
+RUN_ARGS="--spring.profiles.active=test --server.port=8080"
+
+> run/log4j2_test.xml
+<property name="logfile-dir">/data/logs/xxx/</property>
+
+> vim run/start.sh
+#!/bin/bash
+cd deploy/xxx/run
+nohup ./spring-boot-project-0.0.1.jar >/dev/null 2>&1 &
+exit 0
+
+> vim run/stop.sh
+#!/bin/bash
+cd deploy/xxx/run
+kill `pgrep -f spring-boot-project-0.0.1.jar` 2>/dev/null
+ps -ef |grep spring-boot-project-0.0.1.jar | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/null 2>&1 
+exit 0
+
+```
+
 #### CentOS6使用init.d方式
 ```
-> vim   /data/deploy/mytest/target/config/application-prod.properties
+> vim /data/deploy/mytest/target/config/application-prod.properties
 
 server.port=8080
 spring.devtools.restart.enabled=false
@@ -634,7 +675,7 @@ logging.config=log4j2_prod.xml
 LOG_FOLDER=/data/logs
 JAVA_HOME="/data/java/jdk1.8.0_181"
 JAVA_OPTS="-Xmx500M -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
-RUN_ARGS="--spring.profiles.active=prod"
+RUN_ARGS="--spring.profiles.active=prod --server.port=8080"
 
 > chkconfig --add mytest
 > chkconfig --list mytest
