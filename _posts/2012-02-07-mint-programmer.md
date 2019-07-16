@@ -131,7 +131,7 @@ server {
     }
 }
 
-# 强制跳转HTTPS的
+# 强制跳转HTTPS的（301永久：permanent,302临时：redirect）
 server{
     listen 80;
     ...
