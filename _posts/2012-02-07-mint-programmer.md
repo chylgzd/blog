@@ -625,9 +625,12 @@ deploy/xxx/run
 deploy
     xxx
         run
+            config
+                application-prod.properties
             spring-boot-project-0.0.1.conf
             spring-boot-project-0.0.1.jar
             log4j2_test.xml
+            log4j2_prod.xml
             start.sh
             stop.sh
         spring-boot-project
@@ -647,6 +650,9 @@ RUN_ARGS="--spring.profiles.active=test --server.port=8080"
 #!/bin/bash
 cd deploy/xxx/run
 nohup ./spring-boot-project-0.0.1.jar >/dev/null 2>&1 &
+
+tail -1f /data/logs/my-boot-prod/my-boot.log | sed '/Undertow started on port/Q'
+
 exit 0
 
 > vim run/stop.sh
@@ -655,6 +661,9 @@ cd deploy/xxx/run
 kill `pgrep -f spring-boot-project-0.0.1.jar` 2>/dev/null
 ps -ef |grep spring-boot-project-0.0.1.jar | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/null 2>&1 
 exit 0
+
+注意：如果是自定义config/application-prod.properties配置，则需要改变日志路径：
+logging.config=classpath:log4j2.xml -> logging.config=log4j2.xml
 
 ```
 

@@ -217,7 +217,7 @@ docker rm redis-web
 查看某个容器的全部环境变量：
 docker exec jenkins-web env
 
-复制docker容器内文件到宿主机(docker ps -a查看容器id)：
+下载复制docker容器内文件到宿主机(docker ps -a查看容器id)：
 docker cp 容器ID:/etc/profile.d/env.sh /home/soft/download
 
 执行某个容器内的命令：
