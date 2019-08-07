@@ -298,14 +298,20 @@ server{
     location / {
         root /data/www/mytest.com/dist;
         index index.html index.htm;
+        if_modified_since before;
+        etag off;
         access_log off;
         expires 1d;
     }
     location /backend {
-        proxy_pass http://127.0.0.1:8081;
+        proxy_pass http://127.0.0.1:8080;
         proxy_set_header   Host             $host;
         proxy_set_header   X-Real-IP        $remote_addr;
         proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+        access_log off;
     }
     location ~ ^/(WEB-INF)/ {
         deny all;
@@ -333,6 +339,7 @@ nginx -s reload
 
 > crontab -e (无效则使用vim /etc/crontab)
 0 0 1 * * root /data/webserver/letsencrypt/flush_certbot.sh >/dev/null 2>&1
+0 23 15 * *(每月15号晚上23点0分执行)
 ```
 
 #### 手动方式1
@@ -356,6 +363,8 @@ server {
     location / {
         root /data/www/static;
 	    index index.html index.htm
+        if_modified_since before;
+        etag off;
         access_log off;
         expires 1d;
     }
@@ -364,6 +373,10 @@ server {
         proxy_set_header   Host             $host;
         proxy_set_header   X-Real-IP        $remote_addr;
         proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+        access_log off;
     }
     location ~ ^/(WEB-INF)/ {
         deny all;

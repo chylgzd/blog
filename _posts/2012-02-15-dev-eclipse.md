@@ -22,3 +22,12 @@ comments: false
 替换正则：#{vo.$1}
 
 ```
+
+
+#### 错误相关
+
+```
+输入.号后不自动弹出提示：
+windows ——preferences ——java ——editor —— content assist - 勾选Java Prolosals即可
+
+```
