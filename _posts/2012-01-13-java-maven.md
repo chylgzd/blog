@@ -447,7 +447,7 @@ mvn jetty:run 即可运行web工程
 
 上传本地jar包到私有仓库：
 
-mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpackaging=jar -Dfile=gson-1.2.jar -Durl=http://127.0.0.1:8081/repository/maven-3rd-party/ -DrepositoryId=yourServerId
+mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpackaging=jar -Dfile=gson-1.2.jar -DpomFile=pom.xml -Durl=http://127.0.0.1:8081/repository/maven-3rd-party/ -DrepositoryId=yourServerId
 
 （-DrepositoryId对应setting.xml里server的ID）
 
@@ -562,7 +562,7 @@ nx-repository-admin-maven2-mynexus-snapshots-*
 
 ```
 1.手动方式：
-mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=ojdbc14.jar -Durl=http://xxmaven.com/repository/test -DrepositoryId=nexus-xxxx
+mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=ojdbc14.jar -DpomFile=pom.xml -Durl=http://xxmaven.com/repository/test -DrepositoryId=nexus-xxxx
 
 2.工程pom.xml文件自动部署，修改完pom.xml和settings.xml配置文件后,
     如果要发布到快照仓库(默认版本号带SNAPSHOT即可自动识别)：clean -Dmaven.test.skip=true deploy
@@ -661,7 +661,7 @@ mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.
   <password>xxx</password>
 </server>
 5.把本地jar包上传到私服
-mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=ojdbc14.jar -Durl=http://xxmaven.com/repository/test -DrepositoryId=nexus-xxxx
+mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=ojdbc14.jar -DpomFile=pom.xml -Durl=http://xxmaven.com/repository/test -DrepositoryId=nexus-xxxx
 
 6.其它创建一个只读的权限(nx-repository-view-*-*-read)供其它人拉取jar包的帐号即可
 ```

@@ -325,6 +325,11 @@ server{
 > (ubuntu) certbot renew --config-dir /data/webserver/letsencrypt --dry-run
 > (centos6) ./certbot-auto renew --config-dir /data/webserver/letsencrypt --dry-run
 > (centos7) certbot renew --config-dir /data/webserver/letsencrypt/certbotcfg --dry-run
+(
+    如果出现'ascii' codec can't decode byte 0xe6 in position...
+    则先执行检查目录下是否有非ASCII字符,去掉或修改(中文转ASCII:https://tool.oschina.net/encode?type=3):
+    > grep -r -P '[^\x00-\x7f]' /data/webserver/letsencrypt /etc/nginx
+)
 # 成功后加入真正的定时任务执行
 > certbot renew --config-dir /data/webserver/letsencrypt 
 > vim /data/webserver/letsencrypt/flush_certbot.sh
