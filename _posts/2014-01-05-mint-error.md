@@ -164,3 +164,48 @@ sudo fc-cache -fv /usr/local/share/fonts
 ```
 
 
+#### Last failed login:xx from [ip] on ssh:notty,There were xx failed login attempts...
+```
+说明机器被暴力破解登录,记录下ip地址加入限制ip列表(lastb查询所有登录未成功的ip)：
+> vim /etc/hosts.deny
+sshd:192.168.0.123
+
+sshd:192.168.0.123,sshd:192.168.0.124
+
+sshd:192.168.0.*
+
+sshd:all 或 sshd:all:deny
+(sshd:ALL代表禁止所有IP登录，慎用)
+
+(
+ 也可以使用/etc/hosts.allow里添加 sshd:192.168.0.123:allow或sshd:192.168.0.123:deny，
+ 注：当hosts.allow和 host.deny相冲突时，以hosts.allow设置为准
+)
+
+修改完毕重启xinetd:
+> service xinetd restart
+
+另外的方法修改Linux服务端默认sshd端口为2333
+
+> vim /etc/ssh/sshd_config
+# Port 22
+Port 2333
+> systemctl restart sshd
+or
+> service sshd restart
+or
+> service ssh restart
+
+本地客户端相应修改后ssh命令就不用带端口号了
+> vim ~/.ssh/config
+host git.mytest.com
+port 10022
+
+host 192.168.10.11
+port 2333
+
+```
+
+
+
+

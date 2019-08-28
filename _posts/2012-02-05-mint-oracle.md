@@ -264,13 +264,13 @@ ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 ALTER USER mytest IDENTIFIED BY "123@456";
 
 >> 修改密码：
-sqlplus / as sysdba
+> sqlplus / as sysdba
 或
-sqlplus sys/sysdba
+> sqlplus sys/sysdba
 (只能连接本机数据库不需要listener进程)
 
-sqlplus /nolog;
-SQL> conn sys/sys as sysdba;
+> sqlplus /nolog;
+> conn sys/sys as sysdba;
 -- 查看密码重试次数
 SQL> SELECT RESOURCE_NAME, LIMIT FROM DBA_PROFILES WHERE RESOURCE_NAME = 'FAILED_LOGIN_ATTEMPTS';
 -- 修改密码错误重试次数为无限制，防止用户密码错误被锁
@@ -520,6 +520,22 @@ SELECT * FROM user_tab_partitions WHERE table_name='TB_TEST2';
 SELECT max(CREATE_TIME) FROM TB_TEST2;
 ```
 
+### Oracle 相关问题
+```
+1053:该服务没有响应启动或控制请求
+> sqlplus /nolog;
+> conn sys/sys as sysdba;
+> select value from v$diag_info where name ='Diag Alert';
+diag\rdbms\newdb\newdb\alert
+
+加载修改过后的参数文件tnsnames.ora 和 listener.ora
+host=localhost改成计算机名
+
+> lsnrctl stop / start
+
+
+
+```
 
 
 
