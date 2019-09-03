@@ -11,6 +11,7 @@ comments: false
 #### 安装
 
 ```
+https://aiylqy.com/archives/112.html
 http://nginx.org/en/download.html
 http://nginx.org/en/linux_packages.html#stable
 自动安装(CentOS推荐)：
