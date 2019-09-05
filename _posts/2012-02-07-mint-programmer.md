@@ -683,6 +683,91 @@ exit 0
 注意：如果是自定义config/application-prod.properties配置，则需要改变日志路径：
 logging.config=classpath:log4j2.xml -> logging.config=log4j2.xml
 
+> vim deploy/xxx/deploy.sh
+#!/bin/sh
+
+run_dir=deploy/xxx/run
+project_dir=deploy/xxx/spring-boot-project
+jar_name=spring-boot-project-0.0.1.jar
+cd $project_dir
+
+if [ $# -eq 0 ];then
+echo "分支名不能为空！"
+git branch -la
+exit 0
+fi
+
+$run_dir/stop.sh
+
+branch_name=test
+git pull
+git reset --hard origin/$branch_name
+git checkout $branch_name
+git pull
+
+rm -rf target/*
+rm -rf $run_dir/*.jar
+
+mvn clean package -Dmaven.test.skip=true -e
+
+error_code=$?
+if [ $error_code -eq 0 ];then
+    error_msg="jenkins-deploy-backend-success！"
+else
+    error_msg="jenkins-deploy-backend-fail！" 
+fi
+
+cp -rf $project_dir/target/$jar_name $run_dir/
+
+$run_dir/start.sh
+
+echo $error_msg
+
+curl 'https://oapi.dingtalk.com/robot/send?access_token=xxx' \
+   -H 'Content-Type: application/json' \
+   -d '
+  {"msgtype": "text", 
+    "text": {
+        "content":"'$error_msg'"
+     }
+  }'
+
+exit 0
+
+> vim deploy/xxx/frontend/deploy.sh
+project_dir=deploy/xxx/frontend/my-frontend
+branch_name=test
+
+cd $project_dir
+git pull
+git reset --hard origin/$branch_name
+git checkout $branch_name
+git pull
+
+rm -rf dist/*
+npm install
+npm run build:test
+
+error_code=$?
+if [ $error_code -eq 0 ];then
+    error_msg="jenkins-deploy-frontend-success！"
+else
+    error_msg="jenkins-deploy-frontend-fail！" 
+fi
+
+echo $error_msg
+
+curl 'https://oapi.dingtalk.com/robot/send?access_token=xxx' \
+   -H 'Content-Type: application/json' \
+   -d '
+  {"msgtype": "text", 
+    "text": {
+        "content":"'$error_msg'"
+     }
+  }'
+
+exit 0
+
 ```
 
 #### CentOS6使用init.d方式
