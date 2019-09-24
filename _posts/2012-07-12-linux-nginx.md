@@ -38,6 +38,49 @@ nginx
 > systemctl status nginx
 ```
 
+#### centos yum平滑升级nginx
+
+```
+手动升级的时候根据V可查看configure arguments
+> nginx -V 
+
+> lsb_release -a
+LSB Version:	:core-4.1-amd64:core-4.1-noarch
+Distributor ID:	CentOS
+Description:	CentOS Linux release 7.6.1810 (Core) 
+Release:	7.6.1810
+Codename:	Core
+
+> vim /etc/yum.repos.d/nginx.repo (OSRELEASE即为lsb_release的Release变量7)
+[nginx-stable]
+name=nginx stable repo
+baseurl=http://nginx.org/packages/centos/OSRELEASE/$basearch/
+gpgcheck=1
+enabled=1
+gpgkey=https://nginx.org/keys/nginx_signing.key
+
+查找最新稳定版(@nginx-stable表示在用的,nginx-stable表示最新版)
+> yum list |grep nginx.x86_64
+or
+> yum list |grep nginx
+如果出现提示Repodata is over 2 weeks old.则更新下服务包到本地缓存
+> yum makecache fast
+
+更新
+> yum update nginx -y
+
+查看版本
+> nginx -v
+
+测试配置文件是否正常
+> nginx -t
+
+重启
+> nginx -s stop
+> nginx
+```
+
+
 #### /alidata/server/nginx/conf/proxy.conf
 ```conf
 proxy_redirect          off;
@@ -173,6 +216,32 @@ server {
   		root /home/tomcat-hello/webapps/ROOT;
   		access_log off;
       	expires 1d;
+    }
+    location /vue-h5-app1 {
+       add_header Cache-Control "no-cache, no-store";  
+       alias /home/tomcat-hello/webapps/ROOT/vue-h5-app1/;
+       try_files $uri $uri/ /vue-h5-app1/index.html;
+       index index.html index.htm;
+       access_log off;
+       expires 1d;
+    }
+    location /vue-h5-app2 {
+       add_header Cache-Control "no-cache, no-store";  
+       alias /home/tomcat-hello/webapps/ROOT/vue-h5-app2/;
+       try_files $uri $uri/ /vue-h5-app2/index.html;
+       index index.html index.htm;
+       access_log off;
+       expires 1d;
+    }
+    location /m-service/ {
+        proxy_pass http://127.0.0.1:8080/backend-service/;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+	    access_log off;
     }
 }
 server {
