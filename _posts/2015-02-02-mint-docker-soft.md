@@ -586,6 +586,10 @@ https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/current/update-center.json
 系统管理 - Manage and Assign Roles - Assign Roles（给用户分配角色） ：
 	- Global roles 添加dev和test用户并且都勾选登陆角色
 	- Item roles 添加dev勾选开发角色，添加test勾选测试角色
+
+系统管理 -> System Log -> Log Levels（日志级别）：
+javax.jmdns ： off （关闭日志大的问题）
+
 保存重新登陆后，任何人新建dev-或share-开头的项目dev可见，test-开头的项目test可见
 
 
