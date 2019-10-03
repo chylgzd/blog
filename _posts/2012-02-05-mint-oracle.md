@@ -69,9 +69,11 @@ Database altered.
 SQL> exit;
 
 全部导入
-[oracle@126dx7c /]$ > impdp 'mytestusr/123456@helowin' full=Y directory=dump_dir dumpfile=expdp_mytestusr_full.dmp logfile=impdp.log TABLE_EXISTS_ACTION=REPLACE
+[oracle@126dx7c /]$ > impdp 'mytestusr/123456@helowin' full=Y directory=dump_dir dumpfile=expdp.dmp logfile=impdp.log TABLE_EXISTS_ACTION=REPLACE
 或
-[oracle@126dx7c /]$ > impdp mytestusr/123456@helowin directory=dump_dir dumpfile=expdp_mytestusr_full.dmp tables=mytestusr.tb_test,tb_test2 remap_schema=mytestusr_prod:mytestusr logfile=impdp.log
+[oracle@126dx7c /]$ > impdp 'mytestusr/123456@helowin' directory=dump_dir dumpfile=expdp.dmp tables=mytestusr.tb_test,tb_test2 TABLE_EXISTS_ACTION=REPLACE remap_schema=produsr:localusr logfile=impdp.log
+或
+[oracle@126dx7c /]$ > impdp 'mytestusr/123456@helowin' directory=dump_dir dumpfile=expdp.dmp tables=mytestusr.tb_test,tb_test2 TABLE_EXISTS_ACTION=REPLACE logfile=impdp.log
 
 导入结束后日志里有警告的sql，需要手动执行那些报错的sql
 

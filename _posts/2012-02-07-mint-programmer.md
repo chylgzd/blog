@@ -64,9 +64,26 @@ CONF="$REDIS_DIR/redis.conf"
 
 > ./src/redis-client
 
+# 查询server信息
+127.0.0.1:6379> INFO
+
+# 查询client连接列表
+127.0.0.1:6379> CLIENT LIST
+
+# 选择db
 127.0.0.1:6379> SELECT 5
 
-127.0.0.1:6379[5]> get My_CACHE_USER:N1:M1
+# 查看db5下所有键
+127.0.0.1:6379[5]> KEYS
+
+# 获取KEY值
+127.0.0.1:6379[5]> GET "My_CACHE_USER:N1:M1"
+
+# 查看失效时间（秒）
+127.0.0.1:6379[5]> TTL "My_CACHE_USER:N1:M1"
+
+# 删除key
+127.0.0.1:6379[5]> DEL "My_CACHE_USER:N1:M1"
 
 > ./src/redis-client -n 5 --scan --pattern My_CACHE_USER* | xargs redis-cli -n 5 del
 
@@ -658,7 +675,7 @@ deploy
 > vim run/spring-boot-project-0.0.1.conf
 LOG_FOLDER=/data/logs
 JAVA_HOME="/usr/local/java/jdk8202"
-JAVA_OPTS="-Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
+JAVA_OPTS="-Xms250m -Xmx500m -Xmn256m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
 RUN_ARGS="--spring.profiles.active=test --server.port=8080"
 
 > run/log4j2_test.xml
@@ -786,7 +803,7 @@ logging.config=log4j2_prod.xml
 
 LOG_FOLDER=/data/logs
 JAVA_HOME="/data/java/jdk1.8.0_181"
-JAVA_OPTS="-Xmx500M -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
+JAVA_OPTS="-Xms250m -Xmx500m -Xmn256m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
 RUN_ARGS="--spring.profiles.active=prod --server.port=8080"
 
 > chkconfig --add mytest
