@@ -12,14 +12,14 @@ comments: false
 
 #### 安装Redis
 ```
-> tar -zxf redis-4.0.11.tar.gz -C /data/redis/
-> cd  /data/redis/redis-4.0.11/
+> tar -zxf redis-5.0.5.tar.gz -C /data/redis/
+> cd  /data/redis/redis-5.0.5/
 > make
 > vim redis.conf :
 
 bind 0.0.0.0（远程机器访问需要）
 port 6377
-protected-mode no（是否允许远程机器访问）
+protected-mode no（是否保护模式,如果需要远程机器访问则no）
 daemonize yes（是否后台进程启动）
 requirepass pwd123456（设置redis访问密码）
 
@@ -37,11 +37,11 @@ ok
 ```
 centos下：
 
-> cp /data/redis/redis-5.0.4/utils/redis_init_script /etc/init.d/redis
+> cp /data/redis/redis-5.0.5/utils/redis_init_script /etc/init.d/redis
 > cd /etc/init.d
 > vim redis (只改动几个属性配置,其它不变，以后redis升级只需要修改REDIS_DIR即可)
 ...
-REDIS_DIR=/data/redis/redis-5.0.4
+REDIS_DIR=/data/redis/redis-5.0.5
 REDISPORT=6379
 EXEC=$REDIS_DIR/src/redis-server
 CLIEXEC=$REDIS_DIR/src/redis-cli

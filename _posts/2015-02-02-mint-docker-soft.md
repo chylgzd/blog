@@ -61,6 +61,17 @@ docker run --name mysql55 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.
 ）
 通过Navicat或者HeidiSQL建立连接访问测试是否成功
 
+
+如果镜像是mysql8以上版本：
+> docker run --name mysql8 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql:8.0.17
+> docker exec -it mysql8 bash
+> mysql -uroot -p123456
+mysql> use mysql;
+mysql> ALTER USER 'root'@'%' IDENTIFIED BY '123456' PASSWORD EXPIRE NEVER;
+mysql> ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+mysql> flush privileges;
+mysql> exit;
+
 ```
 
 ### 安装 Mongodb
