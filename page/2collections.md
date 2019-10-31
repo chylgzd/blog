@@ -228,6 +228,8 @@ icon: bookmark
 
  * [robomongo-1.0.0-rc1-linux-x86_64](/blog/download/mongo/robomongo-1.0.0-rc1-linux-x86_64.tar.gz)
 
+    [Robo-3T-1.3](https://download-test.robomongo.org/linux/robo3t-1.3.1-linux-x86_64-7419c406.tar.gz) 
+
  * [mNetAssist-linux](/blog/download/mNetAssist-linux.tar.gz)
 
  * [therore-zookeeperdump](/blog/download/zookeeperdump.groovy)

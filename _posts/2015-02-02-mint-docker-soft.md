@@ -78,17 +78,34 @@ mysql> exit;
 
 ```
 下载 mongo：
-docker pull mongo:latest
+docker pull mongo:4.2
+
+下载客户端GUI：
+https://robomongo.org/download
+https://download-test.robomongo.org/linux/robo3t-1.3.1-linux-x86_64-7419c406.tar.gz
+或
 下载 mongo-express：
 docker pull mongo-express:latest
 
 启动 mongo：
-docker run --name mongodb -p 27007:27017 -d mongo
-docker run --name mongodb -p 27007:27017 -d mongo --auth
+
+docker run --name mongodb -p 27007:27017 -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=123456 -d mongo:4.2 
 
 docker exec -it mongodb mongo admin
-db.createUser({ user: 'root', pwd: '123456', roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] });
+db.createUser({ user: 'superAdmin', pwd: '123456', roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] });
 
+> docker exec -it mongodb mongo
+> use admin;
+> db.auth("root","123456");
+> show dbs;
+> use mytest; //不存在则自动创建
+> db.createUser({ user: 'myuser', pwd: '123456', roles: [ { role: "dbOwner", db: "mytest" } ] });  //给mytest创建访问用户
+> db.getUsers(); // 每个db有独立的user，如果该db下不存在则无法使用程序访问
+> db.dropUser("myuser"); //删除用户
+> db.dropDatabase("mytest"); // 删除db
+
+启动 robomongo 客户端连接访问即可
+或
 启动 mongo-express：
 docker run --name mongodb-web  --link mongodb:mongo  -p 8081:8081 -d mongo-express
 
