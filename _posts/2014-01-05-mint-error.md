@@ -8,6 +8,12 @@ comments: false
 * content
 {:toc}
 
+#### su root 出现 Authentication failure
+```
+原因没有创建过root用户直接设置密码即可
+> sudo passwd root
+```
+
 #### 系统没有声音的解决方法
 ```
 pulseaudio --kill
