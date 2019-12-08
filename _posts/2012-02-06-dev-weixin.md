@@ -30,7 +30,7 @@ server_port = 7000
 [web01]
 type = http
 local_ip = 127.0.0.1
-local_port = 8080
+local_port = 80
 use_encryption = false
 use_compression = true
 http_user = 

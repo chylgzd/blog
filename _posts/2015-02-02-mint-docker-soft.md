@@ -469,13 +469,14 @@ gitlab 迁移新域名成功后,git remote set-url origin ssh://git@git.yourdoma
 
 ```
 下载 RabbitMQ：
-docker pull rabbitmq:latest
+docker pull rabbitmq:3.8
+docker pull rabbitmq:3.8-management
 
 启动 rabbitmq（5672映射出来供外部java客户端访问，15672供7070web访问）：
-docker run -d --hostname localhost --name rabbit -p 7070:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=root -e RABBITMQ_DEFAULT_PASS=123456 rabbitmq:3-management
+docker run -d --hostname localhost --name rabbit -p 7070:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=root -e RABBITMQ_DEFAULT_PASS=123456 rabbitmq:3.8-management
 
 如果碰到：
-Unable to find image 'rabbitmq:3-management' locally
+Unable to find image 'rabbitmq:3.8-management' locally
 
 会自动下载安装该插件，然后再一次执行启动命令，
 

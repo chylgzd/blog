@@ -526,6 +526,10 @@ SELECT max(CREATE_TIME) FROM TB_TEST2;
 
 ### Oracle 相关问题
 ```
+oracle针对某个字段建立索引后只查询该字段并未走索引则先分析下该表再看下执行计划
+> analyze table mytest compute statistics; 
+
+
 1053:该服务没有响应启动或控制请求
 > sqlplus /nolog;
 > conn sys/sys as sysdba;
@@ -537,7 +541,36 @@ host=localhost改成计算机名
 
 > lsnrctl stop / start
 
+-------------------------
+JOB无法运行，手动调试的时候打印错误
+SQL > BEGIN DBMS_JOB.run(11); END;
+查询运行日志目录找到 一般是 rdbms/yourservice/yourname/trace/alert_yourname：
+SQL > SELECT VALUE FROM V$PARAMETER WHERE NAME = 'background_dump_dest';
+搜索日志里
+ORA-12012: 自动执行作业 11 出错
+ORA-06550: 第 1 行, 第 96 列: 
+PLS-00905: 对象 xxx 无效
 
+一般可能是存储过程发生变化，但单独call执行也没错，这时需要重新生成job，并把之前的强制broken并删除：
+declare
+  job number;
+BEGIN
+  DBMS_JOB.SUBMIT(  
+        JOB => job,  /*自动生成JOB_ID*/  
+        WHAT => 'P_mytest(TO_CHAR(SYSDATE,''YYYYMMDD''));',  /*需要执行的存储过程名称或SQL语句*/  
+        NEXT_DATE => sysdate+1/(24*60),  /*初次执行时间-下一个1分钟*/  
+        INTERVAL => 'trunc(sysdate,''mi'')+5/(24*60)' /*每隔5分钟执行一次*/
+      );  
+  commit;
+end;
+-------------------------
+JOB可以执行DBMS_JOB.run，但是不能自动执行，查看执行队列的参数是否为0，
+job_queue_processes参数决定了job作业能够使用的总进程数，
+当该参数为0值，任何job都不会被执行，建议合理设置该值且至少大于1
+SQL>show parameter job_queue_process;
+SQL>ALTER SYSTEM SET job_queue_processes = 100;
+或者查看当前数据库事件是否已经过了下次执行时间
+SQL>SELECT job,FAILURES,broken,what "excute_what",concat(TO_CHAR(next_date,'YYYY-MM-DD'),concat(' ',next_sec)) "next_run_time",TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') "current_time" FROM user_jobs
 
 ```
 
