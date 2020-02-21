@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mint各种问题
-category: [Linux-Mint,Mint各种问题,乱码]
+category: [Linux-Mint,Mint各种问题,乱码,ssh暴力破解]
 comments: false
 ---
 
@@ -172,13 +172,17 @@ sudo fc-cache -fv /usr/local/share/fonts
 
 #### Last failed login:xx from [ip] on ssh:notty,There were xx failed login attempts...
 ```
-说明机器被暴力破解登录,记录下ip地址加入限制ip列表(lastb查询所有登录未成功的ip)：
+查看登陆失败日志,可能被暴力破解登陆中：
+> lastb
+
+解决方法1：
+记录下ip地址加入限制ip列表(lastb查询所有登录未成功的ip)：
 > vim /etc/hosts.deny
 sshd:192.168.0.123
 
 sshd:192.168.0.123,sshd:192.168.0.124
 
-sshd:192.168.0.*
+sshd:192.168.*.*
 
 sshd:all 或 sshd:all:deny
 (sshd:ALL代表禁止所有IP登录，慎用)
@@ -191,11 +195,33 @@ sshd:all 或 sshd:all:deny
 修改完毕重启xinetd:
 > service xinetd restart
 
-另外的方法修改Linux服务端默认sshd端口为2333
-
+解决方法2：
 > vim /etc/ssh/sshd_config
-# Port 22
-Port 2333
+#禁用空密码
+PermitEmptyPasswords no
+
+#禁用密码认证方式
+PasswordAuthentication no
+
+#启用密钥验证（即免密登陆方式,一般自动支持可以忽略,如果不能免密登陆再尝试下配置）
+RSAAuthentication yes
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+
+# 修改Linux服务端默认ssh端口22为其它端口(可用范围1024 - 65535,系统内端口范围1-1024)
+Port 43861
+
+#禁用root登陆（改用新建远程用户
+				>useradd testusr
+				>passwd testusr
+				>visudo (使用visudo命令允许此用户能够以root用户身份运行命令)
+				......
+				root ALL=(ALL) ALL
+				testusr ALL=(ALL) NOPASSWD:ALL
+				再切换到root方式，一般上述几个有效后该项可以不用
+		）
+PermitRootLogin no
+
 > systemctl restart sshd
 or
 > service sshd restart
@@ -208,7 +234,7 @@ host git.mytest.com
 port 10022
 
 host 192.168.10.11
-port 2333
+port 43861
 
 ```
 

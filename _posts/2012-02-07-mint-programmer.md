@@ -575,6 +575,12 @@ nginx -s reload
 0 0 1 * * root /data/dev/letsencrypt/mytest.com/flush_cert.sh >/dev/null 2>&1
 ```
 
+### SpringBoot 相关问题
+```
+使用undertow时文件上传必须设置如下值，否则parse multipart error
+spring.servlet.multipart.location=/data/tmp
+```
+
 ### SpringBoot服务自启动
 
 #### log4j2_prod.xml
