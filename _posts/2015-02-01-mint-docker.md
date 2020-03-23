@@ -233,6 +233,13 @@ docker top redis-web
 或者使用(.State.Pid)
 docker inspect -f "{{  _State_Pid  }}" redis-web
 sudo nsenter -t 进程PID -m -u -i -n -p
+
+推送本地镜像到阿里云[从ECS内网服务器上推送不会耗公网流量开头使用registry-vpc]：
+
+sudo docker login --username=用户名 registry.cn-xxx.aliyuncs.com
+sudo docker tag [ImageId] registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
+sudo docker push registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
+
 ```
 
 ### 使用Dockerfile创建docker镜像
@@ -283,10 +290,16 @@ sudo env ROLE=agent CONTROLLER_IP=192.168.0.33 CONTROLLER_PORT=1016 CSPHERE_VERS
 
 #### kubectl命令(管理Kubernetes集群的工具https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG.md)
 ```
+查看客户端和服务端kubectl的版本
+> kubectl version
+
+显示所有已创建的容器
+> kubectl get pods
+
 创建容器根据yaml：
 > kubectl create -f /tmp/my-app.yaml
 
-创建容器根据镜像
+创建容器根据镜像（不能使用registry-vpc内网地址需使用公网地址）
 > kubectl run my-app --image registry.cn-huhehaote.aliyuncs.com/mytest/my-app:0.01
 
 查看是否创建容器成功(会一直阻塞直到状态成功)
