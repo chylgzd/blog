@@ -566,6 +566,18 @@ public class Recv {
 }
 ```
 
+### 安装 RocketMQ 图形界面
+
+```
+docker pull apacherocketmq/rocketmq-console:2.0.0
+
+初次启动
+docker run --name rocketmq-console -e "JAVA_OPTS=-Drocketmq.namesrv.addr=192.168.0.113:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false" -p 8080:8080 -t apacherocketmq/rocketmq-console:2.0.0
+
+下次启动/停止
+docker start/stop rocketmq-console
+```
+
 ### 安装 Jenkins
 
 ```

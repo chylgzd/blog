@@ -543,6 +543,8 @@ RepositoriesManage repositories：
 
 1.仅供拉取代码用的只读角色nexus-read：
 设置 -> Security -> Roles -> Create Nexus role -> privileges只搜索选择 nx-repository-view-*-*-read 即可 -> 保存
+or
+搜索 all repo 且仅勾选privileges的read和view即可
 
 2.部署上传jar的角色nexus-deploy(每创建一个私有仓库都需要加入相关)：
 同上 privileges搜索选择如下：
@@ -553,6 +555,11 @@ nx-repository-admin-maven2-mynexus-*
 
 nx-repository-view-maven2-mynexus-snapshots-*
 nx-repository-admin-maven2-mynexus-snapshots-*
+or
+搜索 all repo 且仅勾选privileges 后把结果都添加上
+搜索 upload 只勾选privileges并添加
+搜索 mynexus- 只勾选privileges并添加
+完成后在用户界面同时绑定nexus-deploy角色和Nexus Deployment Role角色即可 
 
 3.创建用户，选择对应角色即可，用户名密码对应settings.xml文件里的server即可
 
