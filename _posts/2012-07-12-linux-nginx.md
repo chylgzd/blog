@@ -8,7 +8,7 @@ comments: false
 * content
 {:toc}
 
-#### 安装
+### 安装
 
 ```
 https://aiylqy.com/archives/112.html
@@ -43,6 +43,8 @@ nginx
 ```
 手动升级的时候根据V可查看configure arguments
 > nginx -V 
+查看安装是否已包含某模块
+> nginx -V | grep http_realip_module
 
 > lsb_release -a
 LSB Version:	:core-4.1-amd64:core-4.1-noarch
@@ -202,49 +204,6 @@ server
 	rewrite ^(.*) http://www.hello.com$1 redirect;
 }
 server {
-    listen       80;
-    server_name hello.com;
-    location / {
-		index index.jsp index.html index.htm;
-		proxy_pass http://127.0.0.1:8080;
-		include proxy.conf;
-    }
-    location ~ ^/(WEB-INF)/ {
-        deny all;
-    }
-    location ~ \.(html|gif|jpg|jpeg|png|ico|rar|css|js|zip|txt|flv|swf|doc|ppt|xls|pdf)$ {
-  		root /home/tomcat-hello/webapps/ROOT;
-  		access_log off;
-      	expires 1d;
-    }
-    location /vue-h5-app1 {
-       add_header Cache-Control "no-cache, no-store";  
-       alias /home/tomcat-hello/webapps/ROOT/vue-h5-app1/;
-       try_files $uri $uri/ /vue-h5-app1/index.html;
-       index index.html index.htm;
-       access_log off;
-       expires 1d;
-    }
-    location /vue-h5-app2 {
-       add_header Cache-Control "no-cache, no-store";  
-       alias /home/tomcat-hello/webapps/ROOT/vue-h5-app2/;
-       try_files $uri $uri/ /vue-h5-app2/index.html;
-       index index.html index.htm;
-       access_log off;
-       expires 1d;
-    }
-    location /m-service/ {
-        proxy_pass http://127.0.0.1:8080/backend-service/;
-        proxy_set_header   Host             $host;
-        proxy_set_header   X-Real-IP        $remote_addr;
-        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
-        proxy_connect_timeout 10s;
-        proxy_read_timeout 30s;
-        proxy_send_timeout 30s;
-	    access_log off;
-    }
-}
-server {
     listen       443; 
     server_name  hello.com;  
     ssl                  on;  
@@ -292,4 +251,100 @@ chmod 700 htpasswd.py
 ./htpasswd.py -c -b passwd.db root 123456
 ```
 
+### 配置相关
+
+####  多个前端工程配置
+```
+server {
+    listen       80;
+    server_name hello.com;
+    location / {
+			index index.jsp index.html index.htm;
+			proxy_pass http://127.0.0.1:8080;
+			include proxy.conf;
+    }
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    location ~ \.(html|gif|jpg|jpeg|png|ico|rar|css|js|zip|txt|flv|swf|doc|ppt|xls|pdf)$ {
+  		root /home/tomcat-hello/webapps/ROOT;
+  		access_log off;
+      expires 1d;
+    }
+    # 前端1
+    location /vue-h5-app1 {
+       add_header Cache-Control "no-cache, no-store";  
+       alias /home/tomcat-hello/webapps/ROOT/vue-h5-app1/;
+       try_files $uri $uri/ /vue-h5-app1/index.html;
+       index index.html index.htm;
+       access_log off;
+       expires 1d;
+    }
+    # 前端2
+    location /vue-h5-app2 {
+       add_header Cache-Control "no-cache, no-store";  
+       alias /home/tomcat-hello/webapps/ROOT/vue-h5-app2/;
+       try_files $uri $uri/ /vue-h5-app2/index.html;
+       index index.html index.htm;
+       access_log off;
+       expires 1d;
+    }
+    # 后端配置
+    location /m-service/ {
+        proxy_pass http://127.0.0.1:8080/backend-service/;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+	    	access_log off;
+    }
+}
+```
+
+####  代理相关
+```
+# proxy_pass里若以 / 结尾(.com或.cn后面，而不是整个结尾)的则会去掉匹配路径,否则追加到末尾
+
+server_name m1.demo.com
+配置1
+location /server-hello/ {
+	proxy_pass http://hello.com/ #.com后面以/结尾
+	...
+}
+配置2
+location /server-hello/a1 {
+	proxy_pass http://hello.com/a1/  #.com后面以/结尾
+	...
+}
+配置3
+location /server-hello/ {
+	proxy_pass http://hello.com #.com后面不是以/结尾
+	...
+}
+配置4
+location /server-hello/a1 {
+	proxy_pass http://hello.com/a1 #.com后面不是以/结尾
+	...
+}
+访问 ->  http://m1.demo.com/server-hello/a1/b1?c1=d1
+配置1 -> http://hello.com/ 加上请求URI /server-hello/a1/b1?c1=d1 减去匹配 /server-hello/ 等于实际访问 http://hello.com/a1/b1?c1=d1
+配置2 -> http://hello.com/a1/ 加上请求URI /server-hello/a1/b1?c1=d1 减去匹配 /server-hello/a1 等于实际访问 http://hello.com/a1/b1?c1=d1
+配置3 -> http://hello.com 加上请求URI /server-hello/a1/b1?c1=d1 等于实际访问 http://hello.com/server-hello/a1/b1?c1=d1
+配置4 -> http://hello.com/a1 加上请求URI /server-hello/a1/b1?c1=d1 等于实际访问 http://hello.com/a1/server-hello/a1/b1?c1=d1
+
+# 代理第三方域名时必须设置Host为proxy_host
+location /server-nodejs/ {
+  proxy_pass http://nodejs.cn/; #以 / 结尾
+  proxy_set_header Host $proxy_host; #必须设置Host为proxy_host
+  access_log off; # 不输出日志节省空间
+  proxy_connect_timeout 10s;
+  proxy_read_timeout 30s;
+  proxy_send_timeout 30s;
+}
+-> http://hello.com/server-nodejs/api/api/assert.html
+等于实际访问
+-> http://nodejs.cn/api/api/assert.html
+```
 
