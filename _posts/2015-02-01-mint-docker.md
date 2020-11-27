@@ -143,7 +143,7 @@ vim /etc/fstab
 /data/docker/root /var/lib/docker                 none    bind        0 0
 
 
-``` 
+```
 
 #### 查找docker数据目录默认文件夹(方便迁移复制数据目录)
 
@@ -169,8 +169,12 @@ vim /etc/fstab
 ###  Docker命令使用：
 
 ```
-修改时区错误问题：
-> docker cp /etc/localtime 容器ID:/etc/localtime
+修改mysql时区错误问题：
+宿主 > docker exec -it mysql5 bash #进入容器
+容器 > mdkir -p /usr/share/zoneinfo/Asia && rm -rf /etc/localtime
+宿主 > docker cp /usr/share/zoneinfo/Asia/Shanghai 容器ID:/usr/share/zoneinfo/Asia
+容器 > cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+宿主 > docker restart mysql5
 
 docker run 参数：
 --name 容器别名
@@ -240,6 +244,28 @@ sudo docker login --username=用户名 registry.cn-xxx.aliyuncs.com
 sudo docker tag [ImageId] registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
 sudo docker push registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
 
+```
+
+#### docker apt更新国内源
+
+```
+容器 > cat /etc/apt/sources.list
+deb http://deb.debian.org/debian stretch main
+deb http://security.debian.org/debian-security stretch/updates main
+deb http://deb.debian.org/debian stretch-updates main
+
+容器 > mv /etc/apt/sources.list /etc/apt/sources.list.bak #备份
+
+本机 > vim aliyun.list # 替换原来deb.debian.org为mirrors.aliyun.com即可
+deb http://mirrors.aliyun.com/debian stretch main
+#deb http://security.debian.org/debian-security stretch/updates main
+deb http://mirrors.aliyun.com/debian stretch-updates main
+
+本机 > docker cp aliyun.list 容器ID:/etc/apt/sources.list.d/aliyun.list
+容器 > apt-get clean
+容器 > apt-get update
+
+容器 > apt-get -y install vim #可以自由安装所需
 ```
 
 ### 使用Dockerfile创建docker镜像
