@@ -303,6 +303,27 @@ server {
 }
 ```
 
+####  前端vue使用history路由模式(非#)
+```
+vue.js:
+const RouterModel = new Router({
+  mode: 'history'
+  ......
+});
+
+nginx:
+location / {
+  root /home/front-end/vue-h5-app/dist;
+  index index.html index.htm;
+  try_files $uri $uri/ @router;
+  access_log off;
+  expires 1d;
+}
+location @router {
+	rewrite ^.*$ /index.html last;
+}
+```
+
 ####  代理相关
 ```
 # proxy_pass里若以 / 结尾(.com或.cn后面，而不是整个结尾)的则会去掉匹配路径,否则追加到末尾
