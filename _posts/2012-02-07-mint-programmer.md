@@ -581,6 +581,67 @@ nginx -s reload
 spring.servlet.multipart.location=/data/tmp
 ```
 
+### SpringBoot 单元测试相关
+
+#### 模式1-完全不依赖src/main,独立依赖test目录
+```
+test目录的包路径需要完全脱离src/main/java:
+如 src/main/java下包为com.github.mydemo
+则 src/test/java下包为test.github.mydemo或任意与主包不同的包路径即可
+这种模式下是完全脱离src/main里的自动注解,要么需要独立写组件，
+要么使用@Import加载main里组件且不能过度复杂依赖,否则需要@Import很多依赖类,
+好处在于是独立的环境加载启动测试快,如果模块依赖比较复杂建议使用第二个模式
+
+TestSpringbootMain.java:
+
+package test.github.mydemo;
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = SpringbootTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class TestSpringbootMain{
+}
+
+SpringbootTestApplication.java:
+
+package test.github.mydemo;
+@SpringBootApplication
+public class SpringbootTestApplication {
+}
+
+
+```
+
+#### 模式2-依赖src/main,但修改部分代码用于替换测试
+
+```
+test目录的包路径需要保持与src/main/java一致:
+如 src/main/java下包为com.github.mydemo
+则 src/test/java下包也必须以com.github.mydemo开始
+这种模式下是依赖src/main/java里组件的，适合复杂依赖场景的单元测试,避免模式1下重复写太多依赖
+
+TestSpringbootMain.java:
+
+package com.github.mydemo;
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = SpringbootTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class TestSpringbootMain{
+}
+
+由于在一个包路径下会启动主@SpringBootApplication文件,此时需要排除,避免双重配置
+SpringbootTestApplication.java:
+
+package com.github.mydemo;
+@SpringBootApplication
+@ComponentScan(excludeFilters = {
+		#这里可以排除不需要进入单元测试的组件,比如定时任务或其它不需要测试的组件
+		@Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {MainApplication.class,XxxComponent.class}),
+})
+#其它这里可以和MainApplication里保持一致,比如启用事务,JPA审计之类的测试所必须依赖的注解
+//@EnableTransactionManagement
+//@EnableJpaAuditing
+public class SpringbootTestApplication {
+}
+```
+
 ### SpringBoot服务自启动
 
 #### log4j2_prod.xml
