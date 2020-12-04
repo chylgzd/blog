@@ -642,6 +642,27 @@ public class SpringbootTestApplication {
 }
 ```
 
+#### 模式3-不依赖任何自动配置,不论包目录结构,按需自行加载
+
+```
+TestSpringbootMain.java:
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = SpringbootTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class TestSpringbootMain{
+}
+
+SpringbootTestApplication.java:
+
+@SpringBootConfiguration
+@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+#按需手动添加XxxxAutoConfiguration.class
+@Import({ServletWebServerFactoryAutoConfiguration.class})#web必须
+public class SpringbootTestApplication {
+}
+```
+
 ### SpringBoot服务自启动
 
 #### log4j2_prod.xml

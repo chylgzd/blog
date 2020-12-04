@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mint各种小脚本
-category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev,crontab,虚拟机,virtualbox]
+category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev,crontab,虚拟机,virtualbox,远程终端颜色]
 comments: false
 ---
 
@@ -346,9 +346,12 @@ MRX3F-47B9T-2487J-KWKMF-RPWBY
 
 ```
 
-#### 终端颜色
+#### 远程终端颜色别名
 
 ```
+> vim /etc/hostname
+my-prod-web
+
 > vim ~/.bashrc
 # .bashrc
 
