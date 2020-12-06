@@ -169,11 +169,13 @@ sudo fc-cache -fv /usr/local/share/fonts
 
 ```
 
+### 系统安全问题
 
 #### Last failed login:xx from [ip] on ssh:notty,There were xx failed login attempts...
 ```
 查看登陆失败日志,可能被暴力破解登陆中：
 > lastb
+> echo > /var/log/btmp #清理lastb日志
 
 解决方法1：
 记录下ip地址加入限制ip列表(lastb查询所有登录未成功的ip)：
@@ -195,7 +197,7 @@ sshd:all 或 sshd:all:deny
 修改完毕重启xinetd:
 > service xinetd restart
 
-解决方法2：
+======== 解决方法2,只允许使用公钥文件登录(推荐) ========
 > vim /etc/ssh/sshd_config
 #禁用空密码
 PermitEmptyPasswords no
@@ -206,7 +208,7 @@ PasswordAuthentication no
 #启用密钥验证（即免密登陆方式,一般自动支持可以忽略,如果不能免密登陆再尝试下配置）
 RSAAuthentication yes
 PubkeyAuthentication yes
-AuthorizedKeysFile .ssh/authorized_keys
+AuthorizedKeysFile .ssh/authorized_keys #注意提前把本地.pub文件内容追加到远程机器authorized_keys文件里
 
 # 修改Linux服务端默认ssh端口22为其它端口(可用范围1024 - 65535,系统内端口范围1-1024)
 Port 43861
@@ -230,11 +232,15 @@ or
 
 本地客户端相应修改后ssh命令就不用带端口号了
 > vim ~/.ssh/config
-host git.mytest.com
-port 10022
+#ecs0-prod-web
+Host xx.xx.xx.xx
+	port 43861
+	PreferredAuthentications publickey
+	IdentityFile ~/.ssh/ecs/id_rsa_ecs0
+	
+> ssh-keygen -t rsa -C "ecs0@aliyun.com" #提示rsa存放时输入路径id_rsa_ecs0
+> ssh root@xx.xx.xx.xx #将会自动免登录,注意提前把本地.pub文件内容追加到远程机器authorized_keys文件里
 
-host 192.168.10.11
-port 43861
 
 ```
 
