@@ -24,7 +24,12 @@ wget https://ftp.pcre.org/pub/pcre/pcre-8.41.tar.gz
 
 cd /data/nginx-1.14.0/src
 
-./configure --prefix=/data/nginx --with-http_stub_status_module --with-http_ssl_module --with-pcre=/data/src/pcre-8.41 --with-openssl=/data/src/openssl-1.1.0g --with-http_gzip_static_module
+./configure --prefix=/data/nginx --with-http_stub_status_module --with-http_ssl_module --with-pcre=/data/src/pcre-8.41 --with-openssl=/data/src/openssl-1.1.0g --with-http_gzip_static_module --with-ngx_http_proxy_module
+
+//server_name  ~^(?<tenantId>.+)\.tenant\.com$;
+//nginx默认只支持修改响应头:add_header tenant $tenantId;
+//ngx_http_proxy_module为自定义添加请求头时需要,如proxy_set_header tenant $tenantId;
+//此时访问test1.tenant.com时请求和响应头里面都有tenant值为test1的参数
 
 make & make install
 
@@ -326,7 +331,7 @@ location @router {
 
 ####  代理相关
 ```
-# proxy_pass里若以 / 结尾(.com或.cn后面，而不是整个结尾)的则会去掉匹配路径,否则追加到末尾
+# proxy_pass里若以 / 结尾(.com或.cn后面URI)的则会去掉匹配路径,否则追加到末尾
 
 server_name m1.demo.com
 配置1
@@ -369,3 +374,45 @@ location /server-nodejs/ {
 -> http://nodejs.cn/api/api/assert.html
 ```
 
+####  多租户SaaS相关
+```
+# 通过子域名前缀识别区分不同租户,如访问a.tenant.com -> X-Tenant为a
+server {
+    listen       80;
+    #listen       443 ssl;
+    server_name  ~^(?<sub>.+)\.tenant\.com$;
+    proxy_set_header X-Tenant $sub;
+    fastcgi_param X-Tenant $sub;
+    add_header X-Tenant $sub;
+    
+    error_log /tmp/nginx.log error; #debug?info?error?
+    
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    
+    error_page 404 =404 @404;
+    location @404 {
+         default_type application/json;
+         return 502 '{"code":"404","msg":"nginx-404","success":false,"result":null}';
+    }
+    
+    location /m-test1/ {
+        proxy_pass http://test1.com/;
+        proxy_set_header Host $proxy_host;
+        proxy_set_header Origin 'http://test1.com';
+        proxy_set_header X-Tenant $sub;
+        access_log off;
+    }
+    
+    location /m-test2/ {
+        proxy_pass http://test2.com/;
+        proxy_set_header Host $proxy_host;
+        proxy_set_header Origin 'http://test2.com';
+        proxy_set_header X-Tenant $sub;
+        access_log off;
+    }
+    
+}
+
+```
