@@ -176,6 +176,11 @@ sudo fc-cache -fv /usr/local/share/fonts
 查看登陆失败日志,可能被暴力破解登陆中：
 > lastb
 > echo > /var/log/btmp #清理lastb日志
+查看所有登录日志
+> last
+> echo > /var/log/wtmp
+# 其它日志:
+最近登录记录 -> /var/log/lastlog
 
 解决方法1：
 记录下ip地址加入限制ip列表(lastb查询所有登录未成功的ip)：

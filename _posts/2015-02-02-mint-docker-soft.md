@@ -586,13 +586,37 @@ https://hub.tenxcloud.com/repos/docker_library/jenkins
 http://hub.daocloud.io/repos/10e50ad9-7691-4d17-a1ed-c3a0d47d66c0
 
 下载
+docker pull jenkins/jenkins(推荐)
 docker pull jenkins:2.60.3
 docker pull daocloud.io/library/jenkins:latest
 
-运行
-docker run --name jenkins -p 8081:8080 -p 50000:50000 -v /data/dev/docker_data/jenkins/data:/var/jenkins_home -e JAVA_OPTS=-Duser.timezone=Asia/Shanghai -d jenkins:2.60.3 
+运行 (-p 50000:50000)
+docker run --name jenkins -p 8081:8080 -v /data/dev/docker_data/jenkins/data:/var/jenkins_home -e JAVA_OPTS=-Duser.timezone=Asia/Shanghai -d jenkins:2.60.3 
 打开
 localhost:8081
+server {
+    listen       80;
+    #listen       443 ssl;
+    server_name jenkins.xxx.net;
+    ignore_invalid_headers off;#防错误过滤掉头参数
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    error_page 404 =404 @404;
+    location @404 {
+         default_type application/json;
+         return 502 '{"code":"404","msg":"nginx-404","success":false,"result":null}';
+    }
+    location / {
+        proxy_pass http://127.0.0.1:8081;
+        proxy_set_header   Host             $host;
+        proxy_set_header   X-Real-IP        $remote_addr;
+        proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        access_log off;
+        #expires 1d;#proxy_pass不能缓存
+    }
+}
+
 
 解锁
 cat /home/yourname/soft/jenkins_home/secrets/initialAdminPassword
@@ -601,6 +625,8 @@ cat /home/yourname/soft/jenkins_home/secrets/initialAdminPassword
 == 搜索git选择
 	Git Parameter Plug-In（根据git版本构建）
 	Git plugin 
+== 搜索 Maven Integration (构建maven项目)
+== 搜索 nodejs plugin (构建npm项目,全局配置tool自定义下载nodejs包路径后构建选Provide Node&npm bin/folder to PATH)
 == 搜索ssh选择
 	Publish Over SSH
 	SSH plugin （执行远程脚本）
@@ -644,6 +670,16 @@ javax.jmdns ： off （关闭日志大的问题）
 	-参数化构建过程 - 添加参数 git parameter - mybranch - Parameter Type branch -源码管理 -Branch Specifier (blank for 'any')${mybranch}
 	- 构建环境 Send files or execute commands over SSH after the build runs
 	- SSH - 全局配置 - SSH remote hosts（提前Credentials-	(global)Add Credentials-username with password）
+
+注意⚠️：当构建步骤Post Steps选择 Send files or execute commands over SSH 执行远程脚本时：
+SSH Server需要提前在Configure System系统配置里先配置好远程机器;
+(注意远程机器如果使用私钥必须使用下面方式jenkins才能识别私钥
+ssh-keygen -m PEM -t rsa -b 4096 -C "xxx-jenkins@dev-docker.com"
+)
+Transfers 文件传输设置 :
+	Source files填写maven构建编译后的jar: **/springboot-xxx.jar
+	Remote directory: 上传上述jar到远程目录(注意会自动拼接SSH Server所配目录下)
+	Exec command: sh /deploy.sh(上传文件成功后执行远程机器的一些后续如启动类的脚本,注意最好带完整路径否则失败如nohup /bin/java /xxx/springboot-xxx.jar >/dev/null 2>&1 & )
 ```
 
 ### 安装 私有镜像库registry
@@ -726,7 +762,8 @@ server {
         proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
     }
 }
-
+默认密码: admin / admin123
+其它查看 xx-maven.md文档
 ```
 
 ### 安装showdoc，文档服务

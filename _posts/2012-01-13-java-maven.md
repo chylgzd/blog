@@ -483,6 +483,15 @@ mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpa
   <profiles>
         <profile>
             <id>nexus-xxxx</id>
+          <activation>
+          <activeByDefault>true</activeByDefault>
+            <jdk>1.8</jdk>
+          </activation>
+          <properties>
+            <maven.compiler.source>1.8</maven.compiler.source>
+            <maven.compiler.target>1.8</maven.compiler.target>
+            <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+          </properties>
             <repositories>
                 <repository>
                     <id>central</id>
@@ -526,6 +535,7 @@ server{
         proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
     }
 }
+默认密码: admin / admin123
 ```
 
 #### 创建私有仓库
@@ -539,7 +549,10 @@ RepositoriesManage repositories：
 
 #### 创建角色权限
 ```
-!!!安全起见必须取消匿名用户：UsersManage users编辑anonymous设置状态Disabled
+!!!安全起见必须取消匿名用户：
+UsersManage users编辑anonymous设置状态Disabled
+并且
+Anonymous -> Allow anonymous users to access the server去掉勾选后禁止非密码访问
 
 1.仅供拉取代码用的只读角色nexus-read：
 设置 -> Security -> Roles -> Create Nexus role -> privileges只搜索选择 nx-repository-view-*-*-read 即可 -> 保存
