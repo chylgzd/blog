@@ -545,6 +545,9 @@ RepositoriesManage repositories：
 正式仓库 mynexus-release  (maven2(hosted) - Release - Strict - Allow redeploy - Validate)
 快照仓库 mynexus-snapshots(maven2(hosted) - Snapshot - Strict - Allow redeploy)
 
+把私有仓库加入maven-public组
+repositories -> repositories 选择maven-public然后Group设置添加私有正式/快照仓库
+
 ```
 
 #### 创建角色权限

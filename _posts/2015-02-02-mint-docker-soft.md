@@ -679,7 +679,7 @@ ssh-keygen -m PEM -t rsa -b 4096 -C "xxx-jenkins@dev-docker.com"
 Transfers 文件传输设置 :
 	Source files填写maven构建编译后的jar: **/springboot-xxx.jar
 	Remote directory: 上传上述jar到远程目录(注意会自动拼接SSH Server所配目录下)
-	Exec command: sh /deploy.sh(上传文件成功后执行远程机器的一些后续如启动类的脚本,注意最好带完整路径否则失败如nohup /bin/java /xxx/springboot-xxx.jar >/dev/null 2>&1 & )
+	Exec command: sh /deploy.sh(上传文件成功后执行远程机器的一些后续如启动类的脚本,注意最好带完整路径否则失败如nohup /bin/java /xxx/springboot-xxx.jar >/dev/null 2>&1 &  ,如果需要打印日志需要勾选Advanced -> Verbose output in console)
 ```
 
 ### 安装 私有镜像库registry

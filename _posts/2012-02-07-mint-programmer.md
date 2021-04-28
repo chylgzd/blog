@@ -894,6 +894,7 @@ JAVA_HOME="/data/java/jdk1.8.0_181"
 JAVA_OPTS="-Xms250m -Xmx500m -Xmn256m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF8 -Dsun.jnu.encoding=UTF8"
 RUN_ARGS="--spring.profiles.active=prod --server.port=8080"
 
+> chkconfig --del mytest
 > chkconfig --add mytest
 > chkconfig --list mytest
 

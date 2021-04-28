@@ -249,6 +249,10 @@ Host xx.xx.xx.xx
 
 ```
 
+#### Host key verification failed,ECDSA host key for [xxip] has changed and you have requested strict checking
+```
+ssh-keygen -R "xxip"
+```
 
 
 
