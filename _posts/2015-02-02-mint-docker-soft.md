@@ -666,16 +666,22 @@ javax.jmdns ： off （关闭日志大的问题）
 系统管理 - Global Tool Configuration -Maven 安装 新增maven - 取消自动安装 - 填写/var/jenkins_home/maven_home所在目录
 
 新建maven项目：
-	- 丢弃旧的构建 1,1
+	- 丢弃旧的构建 Discard old builds: Days to keep builds值1,Max # of builds to keep值1
 	-参数化构建过程 - 添加参数 git parameter - mybranch - Parameter Type branch -源码管理 -Branch Specifier (blank for 'any')${mybranch}
 	- 构建环境 Send files or execute commands over SSH after the build runs
 	- SSH - 全局配置 - SSH remote hosts（提前Credentials-	(global)Add Credentials-username with password）
 
-注意⚠️：当构建步骤Post Steps选择 Send files or execute commands over SSH 执行远程脚本时：
+⚠️注意：当构建步骤Post Steps选择 Send files or execute commands over SSH 执行远程脚本时：
 SSH Server需要提前在Configure System系统配置里先配置好远程机器;
 (注意远程机器如果使用私钥必须使用下面方式jenkins才能识别私钥
 ssh-keygen -m PEM -t rsa -b 4096 -C "xxx-jenkins@dev-docker.com"
 )
+⚠️git clone慢则选择Additional Behaviours：Advanced clone behaviours
+ - 去掉 Fetch tags
+ - 去掉 Honor refspec on initial clone
+ - Timeout (in minutes) for clone and fetch operations值设置为5
+ - 勾选浅克隆 Shallow clone 且 浅克隆深度Shallow clone depth值设置为1
+
 Transfers 文件传输设置 :
 	Source files填写maven构建编译后的jar: **/springboot-xxx.jar
 	Remote directory: 上传上述jar到远程目录(注意会自动拼接SSH Server所配目录下)
