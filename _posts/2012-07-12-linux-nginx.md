@@ -416,3 +416,47 @@ server {
 }
 
 ```
+
+####  本地VUE连接远程后端调试自动跨域
+```
+mac下修改默认http:
+vim /usr/local/etc/nginx/nginx.conf
+http {
+  add_header 'Access-Control-Allow-Origin' '*';
+  add_header 'Access-Control-Allow-Credentials' 'true';
+  add_header 'Access-Control-Allow-Methods' '*';
+  add_header 'Access-Control-Allow-Headers' '*';
+  include       mime.types;
+  default_type  application/octet-stream;
+  ......
+}
+
+新增一个代理配置:
+vim /etc/nginx/conf.d/my.com.conf
+server {
+    listen       80;
+    #listen       443 ssl;
+    server_name my.com;
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    error_page 404 =404 @404;
+    location @404 {
+         default_type application/json;
+         return 502 '{"code":"404","msg":"nginx-404","success":false,"result":null}';
+    }
+    location /local-vue-use-remote-api {
+        proxy_pass http://my-remote.net/xxx-api;
+        proxy_set_header Host $proxy_host;
+        proxy_set_header Origin 'http://my-remote.net';
+        access_log off;
+    }
+    ...
+}
+
+vue配置里修改 .env.development:
+ENV = 'development'
+#VUE_APP_BASE_API = 'http://my-remote.net/xxx-api'
+VUE_APP_BASE_API = 'http://my.com/local-vue-use-remote-api'
+VUE_CLI_BABEL_TRANSPILE_MODULES = true
+```

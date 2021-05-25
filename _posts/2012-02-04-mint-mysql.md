@@ -185,6 +185,15 @@ start on (filesystem and net-device-up IFACE!=lo) runlevel [!0123456]
 
 ### MYSQL8相关 
 
+#### 常用
+
+```
+更新密码
+update user set authentication_string='' where user='root';
+ALTER user 'root'@'%' IDENTIFIED BY 'hello@123456';
+flush privileges;
+```
+
 #### 递归查询
 ```
 #tb_user表某几列id,pid,name,递归查询根节点下的所有子节点

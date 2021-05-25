@@ -191,6 +191,20 @@ docker run --name nginx -p 80:80 -v /home/html:/usr/share/nginx/html -v /home/ng
 sudo service docker start
 sudo service docker stop
 
+已启动的容器修改参数，如：是否开启自启动参数
+docker container update --restart=always 容器ID(docker ps -a可查看到)
+docker container update --restart=no 容器ID
+restart相关参数值：
+-no，默认策略，在容器退出时不重启容器
+-on-failure，在容器非正常退出时（退出状态非0），才会重启容器
+-on-failure:3，在容器非正常退出时重启容器，最多重启3次
+-always，docker启动时自启动,在容器退出时总是重启容器
+-unless-stopped，在容器退出时总是重启容器，但是不考虑在Docker守护进程启动时就已经停止了的容器
+
+————————————————
+版权声明：本文为CSDN博主「易生一世」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/taiyangdao/article/details/73076019
+
 查看/删除镜像
 docker images
 docker rmi 镜像ID
@@ -198,7 +212,7 @@ docker rmi 镜像ID
 删除所有空标签的镜像
 docker images|sed "1 d"|grep "<none>" |awk '{print $3}' |xargs docker rmi
 
-查看所有容器状态：
+查看所有容器状态(容器ID:CONTAINER ID)：
 docker ps -a
 
 查看某容器相关文件存储版本情况：
@@ -347,5 +361,4 @@ sudo env ROLE=agent CONTROLLER_IP=192.168.0.33 CONTROLLER_PORT=1016 CSPHERE_VERS
 > kubectl delete deployments/my-app services/my-app-svc
 
 ```
-
 
