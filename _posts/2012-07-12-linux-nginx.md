@@ -258,6 +258,34 @@ chmod 700 htpasswd.py
 
 ### 配置相关
 
+####  vue不缓存index.html
+```
+nginx里设置:
+location / {
+        root /xxx/front-end/dist;
+        index index.html index.htm;
+        try_files $uri $uri/ /index.html;
+        access_log off;
+        if ($request_filename ~* .*\.(?:htm|html)){
+            add_header Cache-Control "private, no-store, no-cache, must-revalidate, proxy-revalidate";
+        }
+        if ($request_filename ~* .*\.(?:js|css)){
+            expires 5d;
+        }
+        if ($request_filename ~* .*\.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm)$){
+            expires 5d;
+        }
+    }
+
+index.html的head里添加:
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+
+如果之前没有做如上配置而本地已经有过缓存，需要清空本地缓存并硬性加载刷新，之后才会有效
+```
+
 ####  多个前端工程配置
 ```
 server {

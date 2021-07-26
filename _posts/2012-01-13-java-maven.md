@@ -573,11 +573,29 @@ nx-repository-view-maven2-mynexus-snapshots-*
 nx-repository-admin-maven2-mynexus-snapshots-*
 or
 搜索 all repo 且仅勾选privileges 后把结果都添加上
-搜索 upload 只勾选privileges并添加
+搜索 a 只勾选privileges并添加
 搜索 mynexus- 只勾选privileges并添加
 完成后在用户界面同时绑定nexus-deploy角色和Nexus Deployment Role角色即可 
 
 3.创建用户，选择对应角色即可，用户名密码对应settings.xml文件里的server即可
+
+
+pom.xml
+<distributionManagement>
+		<repository>
+			<id>xx-nexus</id>
+			<name>Release repository</name>
+			<url>http://xx:9000/repository/xx-release/</url>
+		</repository>
+
+		<snapshotRepository>
+			<id>xx-nexus</id>
+			<name>Snapshots repository</name>
+			<url>http://xx:9000/repository/xx-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+deploy:
+mvn clean -Dmaven.test.skip=true -DuseUniqueVersions=false deploy
 
 ```
 

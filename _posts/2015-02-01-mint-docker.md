@@ -16,6 +16,27 @@ comments: false
 
 ### 安装docker
 
+#### HW云安装
+```
+清理旧的：
+> sudo yum remove docker docker-common docker-selinux docker-engine
+> sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+
+下载对应系统版本https://mirrors.huaweicloud.com/home (容器相关docker-ce)
+centos:
+> wget -O /etc/yum.repos.d/docker-ce.repo https://repo.huaweicloud.com/docker-ce/linux/centos/docker-ce.repo
+
+> sudo sed -i 's+download.docker.com+repo.huaweicloud.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+
+> sudo yum makecache fast
+安装
+> sudo yum install docker-ce
+启动
+> sudo systemctl start docker
+
+```
+
+#### 旧版安装
 ```bash
 
 sudo gedit /etc/apt/sources.list.d/docker.list
@@ -97,18 +118,33 @@ rm -rf /var/lib/docker
 #### 国内镜像加速
 
 ```
+方式1使用云加速帐户：
 登陆https://cr.console.aliyun.com
 zfd打开镜像加速器会有提示：
 
-sudo tee /etc/docker/daemon.json <<-'EOF'
+> sudo tee /etc/docker/daemon.json <<-'EOF'
 {
   "registry-mirrors": ["https://xxxx.mirror.aliyuncs.com"]
 }
 EOF
 
-sudo systemctl daemon-reload
+> sudo systemctl daemon-reload
+> sudo systemctl restart docker
 
-sudo systemctl restart docker
+方式2使用通用加速(daemon.json不存在则新建)：
+> vim /etc/docker/daemon.json
+{
+  "registry-mirrors": [
+  	"https://docker.mirrors.ustc.edu.cn/",
+  	"https://hub-mirror.c.163.com",
+  	"https://registry.docker-cn.com",
+    "https://dockerhub.azk8s.cn",
+    "https://reg-mirror.qiniu.com",
+    "https://registry.docker-cn.com"
+  ]
+}
+> sudo systemctl daemon-reload
+> sudo systemctl restart docker
 
 ```
 
@@ -171,7 +207,7 @@ vim /etc/fstab
 ```
 修改mysql时区错误问题：
 宿主 > docker exec -it mysql5 bash #进入容器
-容器 > mdkir -p /usr/share/zoneinfo/Asia && rm -rf /etc/localtime
+容器 > mkdir -p /usr/share/zoneinfo/Asia && rm -rf /etc/localtime
 宿主 > docker cp /usr/share/zoneinfo/Asia/Shanghai 容器ID:/usr/share/zoneinfo/Asia
 容器 > cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 宿主 > docker restart mysql5
@@ -201,10 +237,6 @@ restart相关参数值：
 -always，docker启动时自启动,在容器退出时总是重启容器
 -unless-stopped，在容器退出时总是重启容器，但是不考虑在Docker守护进程启动时就已经停止了的容器
 
-————————————————
-版权声明：本文为CSDN博主「易生一世」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
-原文链接：https://blog.csdn.net/taiyangdao/article/details/73076019
-
 查看/删除镜像
 docker images
 docker rmi 镜像ID
@@ -214,6 +246,11 @@ docker images|sed "1 d"|grep "<none>" |awk '{print $3}' |xargs docker rmi
 
 查看所有容器状态(容器ID:CONTAINER ID)：
 docker ps -a
+
+查看容器内存
+docker stats
+docker stats --no-stream 容器ID
+docker top
 
 查看某容器相关文件存储版本情况：
 docker inspect gitlab
@@ -243,6 +280,7 @@ docker exec -it jenkins-web cat /var/jenkins_home/secrets/initialAdminPassword
 
 进入某个容器1：
 docker exec -it gitlab bash
+docker exec -it -u root jenkins bash (指定root用户)
 
 进入某个容器2：
 先查找出容器的进程PID，再用系统命令nsenter连接即可，连上后就如同操作linux：

@@ -202,6 +202,16 @@ sshd:all 或 sshd:all:deny
 修改完毕重启xinetd:
 > service xinetd restart
 
+ssh卡住或自动停顿问题:
+> vim /etc/ssh/sshd_config
+修改ClientAliveInterval相关
+#ClientAliveInterval 0
+#ClientAliveCountMax 3
+去掉#修改为:
+ClientAliveInterval 30
+ClientAliveCountMax 86400
+> 
+
 ======== 解决方法2,只允许使用公钥文件登录(推荐) ========
 > vim /etc/ssh/sshd_config
 #禁用空密码

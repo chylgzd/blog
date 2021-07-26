@@ -289,10 +289,17 @@ https://certbot.eff.org/lets-encrypt/centos6-nginx
 > ./certbot-auto --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt --register-unsafely-without-email --nginx certonly
 
 # 生成证书-centos7
+> yum install certbot
 > certbot --cert-name my-test -d mytest.com -d b.com -d c.com --config-dir /data/webserver/letsencrypt/certbotcfg --register-unsafely-without-email --nginx certonly
 (
     如果出现ImportError: No module named 'requests.packages.urllib3'
     尝试运行> pip install --upgrade --force-reinstall 'requests==2.6.0' urllib3
+    
+    如果出现ImportError: cannot import name UnrewindableBodyError
+    尝试重装urllib3> pip2 uninstall urllib3 && pip2 install urllib3
+    
+    如果出现The requested nginx plugin does not appear to be installed
+    尝试安装> yum install python3-certbot-nginx 或 yum install python2-certbot-nginx
 )
 
 a，多个域名逗号分隔1,2,4
@@ -1497,7 +1504,6 @@ echo "create status..."
 kubectl rollout status deployment/myapp
 
 ```
-
 
 
 

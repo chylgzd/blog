@@ -72,6 +72,10 @@ mysql> ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
 mysql> flush privileges;
 mysql> exit;
 
+
+ARM架构系统下载mariadb:
+docker run -p 3306:3306 --name some-mariadb -e MARIADB_ROOT_PASSWORD=my-secret-pw -d mariadb:tag
+
 ```
 
 ### 安装 Mongodb
@@ -379,6 +383,26 @@ server {
     }
 }
 
+
+ARM机器安装(注意限制内存大小至少4096M)： 
+> docker run \
+  --detach \
+  --restart always \
+  --name gitlab-ce \
+  --privileged \
+  --memory 4096M \
+  --publish 10022:22 \
+  --publish 10080:80 \
+  --publish 10043:443 \
+  --hostname gitlab.xx.com \
+  --env GITLAB_OMNIBUS_CONFIG=" \
+    nginx['redirect_http_to_https'] = false; "\
+  --volume /data/dev/docker_data/gitlab/conf:/etc/gitlab:z \
+  --volume /data/dev/docker_data/gitlab/logs:/var/log/gitlab:z \
+  --volume /data/dev/docker_data/gitlab/data:/var/opt/gitlab:z \
+  yrzr/gitlab-ce-arm64v8:14.0.5-ce.0
+  
+
 ```
 
 #### 安装说明
@@ -591,7 +615,11 @@ docker pull jenkins:2.60.3
 docker pull daocloud.io/library/jenkins:latest
 
 运行 (-p 50000:50000)
-docker run --name jenkins -p 8081:8080 -v /data/dev/docker_data/jenkins/data:/var/jenkins_home -e JAVA_OPTS=-Duser.timezone=Asia/Shanghai -d jenkins:2.60.3 
+docker run --name jenkins -p 8081:8080 -v /data/dev/docker_data/jenkins/data:/var/jenkins_home -e JAVA_OPTS=-Duser.timezone=Asia/Shanghai -d jenkins:2.60.3
+进入容器:
+(jenkins用户)> docker exec -it jenkins bash
+(root用户)> docker exec -it -u root jenkins bash
+
 打开
 localhost:8081
 server {
@@ -616,6 +644,13 @@ server {
         #expires 1d;#proxy_pass不能缓存
     }
 }
+
+若是war方式:
+启动jenkin时的脚本为(设置JENKINS_HOME目录)：
+#!/bin/bash
+export JENKINS_HOME='/usr/local/soft/jenkins/jenkins_wk_home'
+nohup /usr/bin/java -jar -Djava.security.egd=file:/dev/urandom -Dhudson.util.ProcessTree.disable=true jenkins.war  > /dev/null 2>&1 &
+exit 0
 
 
 解锁
@@ -648,6 +683,13 @@ https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/current/update-center.json
 权限测试Configure Global Security - 访问控制 - 授权策略启用Role-Based Strategy：
 系统管理 - 管理用户 - 新建用户dev和test - 填写完毕；
 系统管理 - Manage and Assign Roles - Manage Roles（管理角色） ：
+	- Global roles 新建访问角色勾选对应:
+	Overall -> Read
+	凭据 -> 不用
+	Job(构建) -> Build / Cancel / Discover / Read
+	Run -> 不用
+	View -> Read
+	
 	- Global roles 新建登陆角色并勾选Overall的Read和Job的Create即可
 	- Project roles 新建开发角色和测试角色Pattern分别为dev-.*|share-.*和test-.*用来区分可见项目并且勾选Job+Run+SCM项的所有
 系统管理 - Manage and Assign Roles - Assign Roles（给用户分配角色） ：
@@ -768,8 +810,12 @@ server {
         proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
     }
 }
-默认密码: admin / admin123
-其它查看 xx-maven.md文档
+默认密码: admin / admin123 (或cat /data/dev/docker_data/nexus/admin.password)
+其它查看 2012-13-java-maven.md文档
+
+ARM架构安装:
+> docker run -d -p 9000:8081 --name nexus -v /data/dev/docker_data/nexus:/nexus-data klo2k/nexus3
+
 ```
 
 ### 安装showdoc，文档服务
