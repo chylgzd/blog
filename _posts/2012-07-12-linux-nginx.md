@@ -258,6 +258,27 @@ chmod 700 htpasswd.py
 
 ### 配置相关
 
+#### http跳转https
+```
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name test.com;
+    ssl_certificate /data/webserver/letsencrypt/certbotcfg/live/test.com/fullchain.pem;
+    ssl_certificate_key /data/webserver/letsencrypt/certbotcfg/live/test.com/privkey.pem;
+    ssl_trusted_certificate /data/webserver/letsencrypt/certbotcfg/live/test.com/chain.pem;
+    ssl_session_tickets on;
+    location ^~ /.well-known/acme-challenge/ {
+        alias /data/webserver/letsencrypt/test.com/www/challenges/;
+        try_files $uri =404;
+    }
+    if ($scheme = http) {
+        rewrite ^/(.*)$ https://test.com/$1 permanent;
+    }
+    ...
+}
+```
+
 ####  vue不缓存index.html
 ```
 nginx里设置:
@@ -284,6 +305,38 @@ index.html的head里添加:
 <meta http-equiv="Cache" content="no-cache">
 
 如果之前没有做如上配置而本地已经有过缓存，需要清空本地缓存并硬性加载刷新，之后才会有效
+```
+
+#### vue nginx 开启gzip压缩
+```
+参考 https://blog.csdn.net/u013788943/article/details/79786558
+vue CompressionWebpackPlugin 配置 productionGzip : true
+webpackConfig.plugins.push(
+    new CompressionWebpackPlugin({
+      asset: '[path].gz[query]',
+      algorithm: 'gzip',
+      test: new RegExp(
+        '\\.(' +
+        config.build.productionGzipExtensions.join('|') +
+        ')$'
+      ),
+      threshold: 10240,
+      // deleteOriginalAssets:true, //删除源文件，不建议
+      minRatio: 0.8
+    })
+  )
+
+nginx里配置：
+
+server {
+    listen       80;
+    server_name xx.com;
+    gzip  on;
+    gzip_types text/plain application/x-javascript application/javascript text/css application/xml text/javascript application/x-httpd-php image/jpeg image/gif image/png;
+    
+    ...
+}
+
 ```
 
 ####  多个前端工程配置
