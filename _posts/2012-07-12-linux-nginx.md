@@ -258,6 +258,28 @@ chmod 700 htpasswd.py
 
 ### 配置相关
 
+#### 限制每个IP的并发数
+
+```
+修改默认配置nginx.conf:
+...
+http{
+	# 对连接IP进行计数,1m可以储存32000个并发会话
+	# 定义全局变量,zone=自定义别名
+	limit_conn_zone $binary_remote_addr zone=xaddr:10m;
+}
+
+修改某个域名限制的配置文件mytest.com.conf;
+server {
+    listen       80;
+    #listen       443 ssl;
+    server_name mytest.com;
+    #限制每个IP只能发起10个连接(跟limit_conn_zone自定义别名对应)
+    limit_conn xaddr 10;
+    ...
+}
+```
+
 #### http跳转https
 ```
 server {
