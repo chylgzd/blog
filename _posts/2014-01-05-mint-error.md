@@ -169,6 +169,20 @@ sudo fc-cache -fv /usr/local/share/fonts
 
 ```
 
+
+### CPU 占用过高
+```
+#打印现在所有活动CPU的堆栈,配合dmesg使用(top发现CPU占用高时使用)
+echo l > /proc/sysrq-trigger
+(
+	> echo l > /proc/sysrq-trigger
+	> dmesg
+	[5709990.820967] [drm:virtio_gpu_dequeue_ctrl_func [virtio_gpu]] *ERROR* response 0x1202 (command 0x103)
+	> lsmod | grep virtio_gpu //查询virtio_gpu模块
+	> rmmod virtio_gpu //卸载模块
+)
+```
+
 ### 系统安全问题
 
 #### Last failed login:xx from [ip] on ssh:notty,There were xx failed login attempts...
