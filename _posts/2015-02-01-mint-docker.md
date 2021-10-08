@@ -204,6 +204,7 @@ vim /etc/fstab
 
 ###  Docker命令使用：
 
+#### 通用
 ```
 修改mysql时区错误问题：
 宿主 > docker exec -it mysql5 bash #进入容器
@@ -226,6 +227,8 @@ docker run --name nginx -p 80:80 -v /home/html:/usr/share/nginx/html -v /home/ng
 启动/停止docker服务
 sudo service docker start
 sudo service docker stop
+或
+sudo systemctl restart docker
 
 已启动的容器修改参数，如：是否开启自启动参数
 docker container update --restart=always 容器ID(docker ps -a可查看到)
@@ -295,6 +298,24 @@ sudo nsenter -t 进程PID -m -u -i -n -p
 sudo docker login --username=用户名 registry.cn-xxx.aliyuncs.com
 sudo docker tag [ImageId] registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
 sudo docker push registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
+
+```
+
+#### docker buildx
+```
+下载(mac系统选择darwin-amd64): https://github.com/docker/buildx/releases/tag/v0.6.3
+
+# 重命名文件为docker-buildx并放置对应目录及赋权限:
+>  mv ~/tmp/buildx-v0.6.3.darwin-amd64 ~/.docker/cli-plugins/docker-buildx
+>  chmod 700 docker-buildx
+
+后续就可以参考 https://github.com/klo2k/nexus3-docker 编译不同平台
+
+> docker buildx build --pull \
+  --platform "linux/arm64" \
+  --tag "klo2k/nexus3" \
+  --output=type=docker \
+  .
 
 ```
 
