@@ -136,8 +136,30 @@ https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html
 https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=1417751808&token=&lang=zh_CN
 ```
 
+#### 微信反盗链设置
 
+```
+出现此图片来自微信公众平台未经允许不可引用
 
+方法1，在public目录的index.html引入头:
+
+#所有请求都不发送referrer
+<meta name="referrer" content="never">
+或
+#只发送相同域的referrer
+<meta name="referrer" content="same-origin">
+
+方法2，使用代理:
+location ^~ /wechat_image/ {
+    add_header 'Access-Control-Allow-Origin' "$http_origin" always;
+    add_header 'Access-Control-Allow-Credentials' 'true' always;
+    add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS' always;
+    add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Mod    ified-  Since,Keep-Alive,Origin,User-Agent,X-Requested-With' always;
+    proxy_pass http://wx.qlogo.cn/;
+ }
+ 
+然后把请求微信图片地址替换成/wechat_image/xxx即可
+```
 
 
 

@@ -369,6 +369,92 @@ export PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\
 export JAVA_HOME=/data/jdk1.8.0_181
 ```
 
+#### 端口转发相关
+
+```
+代理本地3307端口到目标内网192.168.0.2的3306端口通过跳板机x.x.x.x
+local> ssh -CfNg -L 3307:192.168.0.2:3306 root@x.x.x.x
+
+#停止代理:
+local> pgrep ssh | xargs kill
+
+#转发本地端口到远程
+local> ssh -L local-port:target-host:target-port tunnel-host
+#转发远程端口到本地
+local> ssh -R remote-port:target-host:target-port -N remotehost
+
+案例一：
+1,从公网服务器穿透到本地机器:
+将本地22端口转发到公网服务器 (remote@IP) 的 7788 端口上
+local	> ssh -fNTR 7788:localhost:22 remote@IP
+local	> ssh remote@IP
+remote> ssh -p 7788 本地机器用户名@localhost
+remote> vim ~/.ssh/config
+Host localmac
+  User 本地机器用户名
+  Port 7788
+  HostName localhost
+remote> ssh localmac
+
+2,从本地转发公网服务器
+把本地8080端口转发到REMOTE-IP这台机器上的8888端口
+local> ssh -CfNg -L 8080:REMOTE-IP:8888 REMOTE-IP
+
+
+案例二：
+本地配置跳板机，登录跳板机后面的内网机器
+local > vim ~/.ssh/config
+Host tiaoban
+	HostName x.x.x.x (跳板机公网IP)
+	Port 22
+	User u_tiaoban
+Host lan-ecs1
+	HostName 192.168.0.11 (内网IP)
+	Port 22
+	User u_lan-ecs1
+	ProxyCommand ssh u_tiaoban@tiaoban -W %h:%p
+Host lan-ecs2
+	HostName 192.168.0.12 (内网IP)
+	Port 22
+	User u_lan-ecs2
+	ProxyCommand ssh u_tiaoban@tiaoban -W %h:%p
+	
+local > ssh lan-ecs1
+local > ssh lan-ecs2
+
+
+
+案例三：
+借助远程vps让两台不能直接相通的机器相互能访问。
+有主机vps和主机A、B。A、B无法直连，通过“中介”搭桥相连。（两台机器都能主动ssh到vps就能完成。）
+A要ssh到B（B要ssh到A是同理）：
+1、主机B用ssh远程转发自己的2222端口到vps的127.0.0.1:12222
+B> ssh -NfR 12222:127.0.0.1:2222 user@vps -p2222
+
+2、主机A用ssh本地转发vps的127.0.0.1:12222到本地的127.0.0.1:12222
+A> ssh -NfL 12222:127.0.0.1:12222 user@vps -p2222
+
+3、主机A登录主机B
+A> ssh user@localhost -p12222
+
+
+
+案例四：
+如果2222端口被封，如果绕过封死2222端口的防火墙直接ssh到内网机器。（就是说限某几个端口是有局限的）
+1、登录最重要的机器把2222端口映射到12222端口：
+  ssh -gfNL 12222:0.0.0.0:2222 localhost -p2222
+2、使用该机器做隧道代理访问其他内网机器：
+  ssh -NfD 10000 user@host -p12222
+3、ssh绕道访问其他内网机器：
+  ssh -o "ProxyCommand=nc -x localhost:10000 %h %p" user@host -p2222
+
+
+
+
+
+
+
+```
 
 
 

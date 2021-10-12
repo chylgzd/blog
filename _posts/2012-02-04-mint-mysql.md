@@ -183,6 +183,34 @@ start on (filesystem and net-device-up IFACE!=lo)改为
 start on (filesystem and net-device-up IFACE!=lo) runlevel [!0123456]
 ```
 
+### MYSQL 相关
+
+#### 账户相关
+```
+# 查询所有账号信息
+mariadb:
+SELECT DISTINCT a.`User`,a.`Host`,a.password_expired,a.* FROM mysql.user a;
+
+mysql:
+SELECT DISTINCT a.`User`,a.`Host`,a.password_expired,a.password_last_changed,a.password_lifetime,a.* FROM mysql.user a;
+
+# 创建只读用户
+mysql / mariadb:
+CREATE USER all_r IDENTIFIED BY 'test@1234'
+GRANT SELECT ON *.* TO 'all_r'@'%'  (所有库只读)
+GRANT SELECT ON mysql.* TO 'xx_r'@'%'  (某个库只读)
+GRANT ALL PRIVILEGES ON testdb.* TO 'testdb_rw'@'%'  (某个库所有权限)
+
+# 修改用户密码
+mysql / mariadb:
+ALTER user 'all_r'@'%' IDENTIFIED BY 'test#1234';
+
+# 刷新权限
+mysql / mariadb:
+FLUSH PRIVILEGES;
+
+```
+
 ### MYSQL8相关 
 
 #### 常用
