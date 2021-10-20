@@ -1632,10 +1632,21 @@ kubectl rollout status deployment/myapp
 ```
 # 查看java相关进程
 > top $(ps -e | grep java | awk '{print $1}' | sed 's/^/-p/')
+
 # 根据pid查看GC相关
 > jstat -gc [pid]
+
 # 根据pid查看服务安装路径
 > ll /proc/[pid]/cwd
 > lsof -p [pid]
+
+# 保持JAVA线程栈日志
+> jstack [pid] > /tmp/jstack.log
+# 统计文件中java.lang.Thread.State出现次数
+> grep 'java.lang.Thread.State' jstack.log  | wc -l
+> grep -A 1 'java.lang.Thread.State' jstack.log  | grep -v 'java.lang.Thread.State' | sort | uniq -c |sort -n
+
+# 打印JAVA线程堆日志,下载到本地用使用JProfiler或开源的MAT(Memory Analyzer 1.10.0 Release)分析jvm heap
+> jmap -dump:format=b,file=/tmp/jheap.hprof [pid]
 ```
 
