@@ -672,6 +672,126 @@ public class SpringbootTestApplication {
 
 ### SpringBoot服务自启动
 
+#### 脚本方式
+
+```
+/usr/local/deploy/xxx/my-boot-project
+部署目录结构：
+deploy/xxx/my-boot-project
+deploy/
+    xxx/
+        my-boot-project/
+            config/
+                application-mytest.yml
+                log4j2.xml
+            my-boot-project-0.0.1.conf
+            my-boot-project-0.0.1.jar
+            logs/
+            start.sh
+            stop.sh
+
+启动脚本:
+> vim start.sh
+#!/bin/bash
+
+cd /usr/local/deploy/xxx/my-boot-project
+
+nohup /usr/bin/java -jar -Djava.security.egd=file:/dev/urandom my-boot-project-0.0.1.jar --spring.profiles.active=mytest > ./logs/my-boot-project.log 2>&1 &
+
+exit 0
+
+停止脚本:
+> vim stop.sh
+#!/bin/bash
+
+cd /usr/local/deploy/xxx/my-boot-project
+
+kill `pgrep -f my-boot-project-0.0.1-SNAPSHOT.jar` 2>/dev/null
+
+ps -ef |grep my-boot-project-0.0.1-SNAPSHOT.jar | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/null 2>&1 
+
+exit 0
+
+日志config:
+> vim config/application-mytest.yml
+logging:
+  config: config/log4j2.xml
+  level:
+    root: DEBUG
+    com.xxx.demo: DEBUG
+    
+xboot:
+  auth:
+    log-analysis: 
+      enabled: true #是否开启json日志分析
+
+日志目录:
+> vim config/log4j2.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+	<properties>
+			<property name="project-name">service-my-boot</property>
+			<property name="logfile-dir">./logs/</property>
+			<property name="console-pattern">%d{yyyyMMdd HH:mm:ss.SSS} [%level:%thread] %logger{36} - %msg%n</property>
+			<property name="logfile-pattern">%d{yyyyMMdd HH:mm:ss.SSS} [%level:%thread] %logger - %msg%n</property>
+	</properties>
+	<Appenders>
+		<Console name="stdout" target="SYSTEM_OUT" follow="true">
+			<PatternLayout pattern="${console-pattern}" />
+		</Console>
+		<RollingFile name="${project-name}"  fileName="${logfile-dir}${project-name}.log" filePattern="${logfile-dir}${project-name}.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="true">
+			<PatternLayout pattern="${logfile-pattern}" />
+			 <Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="1 GB" />
+            </Policies>
+		</RollingFile>
+		<RollingFile name="${project-name}-info" fileName="${logfile-dir}${project-name}-info.log" filePattern="${logfile-dir}${project-name}-info.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="false">
+			<PatternLayout pattern="${logfile-pattern}" />
+			<filters>
+					<ThresholdFilter level="FATAL" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="WARN" onMatch="DENY" onMismatch="NEUTRAL"/>
+					<ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+	        </filters>
+			 <Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="1 GB" />
+            </Policies>
+		</RollingFile>
+		<RollingFile name="${project-name}-error" fileName="${logfile-dir}${project-name}-error.log" filePattern="${logfile-dir}${project-name}-error.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="true">
+			<PatternLayout pattern="${logfile-pattern}" />
+			<filters>
+			     <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+	        </filters>
+			<Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="1 GB" />
+            </Policies>
+		</RollingFile>
+		<!-- analysis-log-file -->
+		<RollingFile name="XbootLogAnalysis-File"  fileName="${logfile-dir}${project-name}-x-analysis.log" filePattern="${logfile-dir}${project-name}-x-analysis.%d{yyyyMMdd}-%i.log.gz" bufferedIO="true" immediateFlush="true">
+			<PatternLayout pattern="%msg%n" />
+			 <Policies>
+                    <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                    <SizeBasedTriggeringPolicy size="1 GB" />
+            </Policies>
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+		<Logger name="XbootLogAnalysis" level="info" additivity="true">
+			<AppenderRef ref="XbootLogAnalysis-File" />
+		</Logger>
+		<Root level="info">
+			<AppenderRef ref="stdout" />
+			<AppenderRef ref="${project-name}" />
+			<AppenderRef ref="${project-name}-info" />
+			<AppenderRef ref="${project-name}-error" />
+		</Root>
+	</Loggers>
+</Configuration>
+```
+
 #### log4j2_prod.xml
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1505,5 +1625,17 @@ kubectl rollout status deployment/myapp
 
 ```
 
+### JAVA相关
 
+#### 问题排查
+
+```
+# 查看java相关进程
+> top $(ps -e | grep java | awk '{print $1}' | sed 's/^/-p/')
+# 根据pid查看GC相关
+> jstat -gc [pid]
+# 根据pid查看服务安装路径
+> ll /proc/[pid]/cwd
+> lsof -p [pid]
+```
 

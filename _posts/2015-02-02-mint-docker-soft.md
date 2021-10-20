@@ -52,7 +52,7 @@ docker run --name es2 -p 9200:9200 -p 9300:9300 -d index.tenxcloud.com/docker_li
 docker pull mysql:5.5
 
 启动 mysql：
-docker run --name mysql55 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.5
+docker run --name mysql55 -p 3306:3306 -v /etc/localtime:/etc/localtime:ro -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.5
 （说明：--name为别名，
 		以后启动/停止用docker start/stop mysql55即可,查看docker ps -a,删除docker rm ID或别名
 		-p为端口映射
@@ -74,7 +74,9 @@ mysql> exit;
 
 
 ARM架构系统下载mariadb:
-docker run -p 3306:3306 --name some-mariadb -e MARIADB_ROOT_PASSWORD=my-secret-pw -d mariadb:tag
+docker pull mariadb:10.6.3
+
+docker run -p 13306:3306 --name mariadb -v /etc/localtime:/etc/localtime:ro -v /data/dev/docker_data/mariadb:/var/lib/mysql -e MARIADB_ROOT_PASSWORD=123456 -d mariadb:10.6.3
 
 ```
 

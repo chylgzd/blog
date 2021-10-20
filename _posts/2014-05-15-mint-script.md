@@ -376,7 +376,10 @@ export JAVA_HOME=/data/jdk1.8.0_181
 local> ssh -CfNg -L 3307:192.168.0.2:3306 root@x.x.x.x
 
 #停止代理:
+(停止所有ssh进程)
 local> pgrep ssh | xargs kill
+(只停止查询到的对应进程)
+local> ps -ef |grep 3307:192.168.0.2:3306 | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/null 2>&1 
 
 #转发本地端口到远程
 local> ssh -L local-port:target-host:target-port tunnel-host
