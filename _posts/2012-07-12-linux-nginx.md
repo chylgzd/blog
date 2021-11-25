@@ -280,6 +280,42 @@ server {
 }
 ```
 
+#### 禁止某些User-Agent访问网站
+
+```
+server {
+    listen       80;
+    #listen       443 ssl;
+    server_name xx.com;
+    #limit_conn addr 2;
+    #charset        utf-8;
+    # 禁止空user_agent
+    if ( $http_user_agent ~ ^$){
+        return 403;
+    }
+    # 禁止CURL
+    if ($http_user_agent ~* "curl"){
+       return 403;
+    }
+    # 禁止ab压测/wget/paw/postman访问(开发者可手动设置user_agent)
+    if ($http_user_agent ~ ApacheBench|WebBench|Wget|Paw|Postman)
+    {
+        return 403;
+    }
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }    error_page 404 =404 @404;
+    location @404 {
+         default_type application/json;
+         return 502 '{"code":"404","msg":"nginx-404","success":false,"result":null}';
+    }
+    location / {
+	    root /Users/lisf/soft/js;
+        index index.html index.htm;
+    }
+    ...
+```
+
 #### http跳转https
 ```
 server {
