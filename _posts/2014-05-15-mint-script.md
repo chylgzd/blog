@@ -369,8 +369,41 @@ export PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\
 export JAVA_HOME=/data/jdk1.8.0_181
 ```
 
-#### 端口转发相关
+#### 端口相关
 
+##### 端口开放
+```
+# 查看已开放的端口
+> /sbin/iptables -L -n
+# 查看防火墙状态
+> service iptables status
+# 安装
+> yum install iptables-services
+# 启动
+> service iptables start
+# 重启
+> service iptables restart
+# 开放某个端口(比如80,需重启iptables)
+> vim /etc/sysconfig/iptables
+# sample configuration for iptables service
+# you can edit this manually or use system-config-firewall
+# please do not ask us to add additional ports/services to this default configuration
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+-A FORWARD -j REJECT --reject-with icmp-host-prohibited
+COMMIT
+
+```
+
+##### 转发端口
 ```
 代理本地3307端口到目标内网192.168.0.2的3306端口通过跳板机x.x.x.x
 local> ssh -CfNg -L 3307:192.168.0.2:3306 root@x.x.x.x
