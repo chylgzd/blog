@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Maven 相关
-category: [Java,Maven]
+category: [Java,Maven,lombok]
 comments: false
 ---
 
@@ -747,6 +747,45 @@ https://mvnrepository.com/
 1.清理更新文件：
 > find ~/pro/maven/repo/ -name *lastUpdated.properties | xargs rm -f
 
+2. 无异常的编译失败问题
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <version>3.8.1</version><!--$NO-MVN-MAN-VER$ -->
+  <configuration>
+  <source>1.8</source>
+  <target>1.8</target>
+  <!-- 解决lombok编译失败问题 -->
+  <annotationProcessorPaths>
+    <path>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.16</version>
+    </path>                         
+  </annotationProcessorPaths>
+  <encoding>UTF-8</encoding>
+  </configuration>
+  <dependencies>
+  	<!-- 使用plexus-compiler-javac调试具体错误原因,注意版本号必须1.8.1(找到原因后可删除该依赖) -->
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-compiler-javac</artifactId>
+      <version>1.8.1</version>
+    </dependency>
+  </dependencies>
+  <executions>
+    <execution>
+      <id>default-testCompile</id>
+      <phase>test-compile</phase>
+      <goals>
+      	<goal>testCompile</goal>
+      </goals>
+      <configuration>
+      	<skip>true</skip>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
 
 ```
 
