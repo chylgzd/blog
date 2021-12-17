@@ -484,13 +484,105 @@ A> ssh user@localhost -p12222
 3、ssh绕道访问其他内网机器：
   ssh -o "ProxyCommand=nc -x localhost:10000 %h %p" user@host -p2222
 
-
-
-
-
-
-
 ```
 
+#### 账户相关
 
+```
+#添加用户
+> sudo useradd -m jenkins
+> passwd jenkins
+> sudo usermod -s /bin/bash demo (ubuntu)
+
+# 添加只读用户
+> useradd -s /bin/bash readonly
+> passwd readonly
+> mkdir /home/readonly/.bin
+	> vim /home/readonly/.bash_profile
+		修改PATH路径 PATH=$HOME/.bin
+> mkdir /home/readonly/.ssh (只允许ssh登录时需要)
+	> touch /home/readonly/.ssh/authorized_keys
+	> chown -R readonly:readonly /home/readonly/.ssh
+## root修改用户的shell配置文件
+> chown root. /home/readonly/.bash_profile 
+> chmod 755 /home/readonly/.bash_profile
+> chattr -i /home/readonly/.bash_profile
+## (可选,让只读用户执行命令)将允许执行的命令链接到$HOME/.bin目录
+ln -s /usr/bin/wc  /home/readonly/.bin/wc
+ln -s /usr/bin/tail  /home/readonly/.bin/tail
+ln -s /bin/more  /home/readonly/.bin/more
+ln -s /bin/cat  /home/readonly/.bin/cat
+ln -s /bin/grep  /home/readonly/.bin/grep
+ln -s /bin/find  /home/readonly/.bin/find
+ln -s /bin/pwd  /home/readonly/.bin/pwd
+ln -s /bin/ls  /home/readonly/.bin/ls
+ln -s /usr/bin/less /home/readonly/.bin/less
+ln -s /bin/tar  /home/readonly/.bin/tar
+## (可选)切换到只读账号使环境变量生效
+> su - readonly
+> source /home/readonly/.bash_profile
+或
+> ssh readonly@IP
+
+#添加非登录用户
+sudo useradd -r -s /sbin/nologin tomcat
+
+# 查看系统所有用户
+> cut -d: -f1 /etc/passwd 
+> cut -d: -f1 /etc/passwd | grep xxx
+# 查看系统所有组
+> cut -d: -f1 /etc/group 
+
+# 查看系统当前已登录的用户列表
+> w
+或
+> who
+USER     TTY      FROM              LOGIN@   IDLE   JCPU   PCPU WHAT
+root     pts/0    121.234.185.39  12:12    2.01m  0.01s  0.00s w
+root     pts/1    101.100.22.102  11:14    2:14m  0.01s  0.01s -bash
+
+# 踢出其它用户
+> pkill -kill -t pts/1
+
+# 只允许root登录
+root> touch /etc/nologin 
+root> echo "Systems are wealth maintenance, 1 hour after the landing." > /etc/nologin
+```
+
+##### 禁止账户操作
+```
+## 禁止用户访问某个目录或权限(设置ACL规则)
+> setfacl -R -m u:readonly:- /bin
+> cd /bin
+> setfacl -m u:readonly:- mv
+> setfacl -m u:readonly:- rm
+> setfacl -m u:readonly:- vim
+> setfacl -m u:readonly:- vi
+> setfacl -m u:readonly:- ls
+> setfacl -m u:readonly:- find
+> setfacl -m u:readonly:- tail
+> setfacl -m u:readonly:- more
+> setfacl -m u:readonly:- less
+> setfacl -m u:readonly:- cat
+> setfacl -m u:readonly:- wget
+> setfacl -m u:readonly:- curl
+> setfacl -m u:readonly:- tar
+> setfacl -m u:readonly:- unzip
+> setfacl -m u:readonly:- zip
+
+## 禁止用户访问某个目录下的部分文件权限(禁止查看.yml和.sh脚本等重要配置)
+> find /usr/local -type f -regex ".*\.\(yml\|sh\|conf\|properties\)" | xargs setfacl -m u:readonly:-
+
+## 允许用户访问某个目录或权限(r读x执行w写)
+> setfacl -R -m u:readonly:rx /bin
+> setfacl -m u:readonly:rx /bin/vim
+
+## 查看某个目录或文件的ACL规则
+> getfacl /bin
+> getfacl /bin/vim
+
+## 删除某个目录或文件的ACL规则
+> setfacl -b /bin
+> setfacl -b /bin/vim
+```
 
