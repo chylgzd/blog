@@ -599,3 +599,50 @@ ENV = 'development'
 VUE_APP_BASE_API = 'http://my.com/local-vue-use-remote-api'
 VUE_CLI_BABEL_TRANSPILE_MODULES = true
 ```
+
+### 问题相关
+
+#### 403问题
+
+```
+情况1，只配置后端服务不配置默认root /路径会导致403：
+server {
+    listen       80;
+    #listen       443 ssl;
+    server_name  xx.my.com;
+    limit_conn xaddr 10;
+    gzip  on;
+    gzip_types text/plain application/x-javascript application/javascript text/css application/xml text/javascript application/json;
+    charset        utf-8;
+     if ( $http_user_agent ~ ^$){
+        return 403;
+    }
+    if ($http_user_agent ~* "curl"){
+       return 403;
+    }
+    if ($http_user_agent ~ ApacheBench|WebBench|Wget|Paw|Postman)
+    {
+        return 403;
+    }
+    location ~ ^/(WEB-INF)/ {
+        deny all;
+    }
+    #解决问题：使用下面默认配置一个前端root即可
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }    
+   location /service-xxx {
+        proxy_pass http://127.0.0.1:8080/service-xxx;
+        proxy_set_header Host   $host;
+        proxy_set_header X-Real-IP  $remote_addr;
+        proxy_set_header X-Real-Port    $remote_port;
+        proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+    } 
+
+}
+
+```

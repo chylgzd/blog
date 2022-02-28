@@ -200,6 +200,7 @@ CREATE USER all_r IDENTIFIED BY 'test@1234'
 GRANT SELECT ON *.* TO 'all_r'@'%'  (所有库只读)
 GRANT SELECT ON mysql.* TO 'xx_r'@'%'  (某个库只读)
 GRANT ALL PRIVILEGES ON testdb.* TO 'testdb_rw'@'%'  (某个库所有权限)
+GRANT ALL PRIVILEGES ON testdb.tb_demo1 TO 'testdb_rw'@'%'  (某个库某个表的所有权限,注意多个表需多条语句)
 
 # 修改用户密码
 mysql / mariadb:
@@ -208,6 +209,12 @@ ALTER user 'all_r'@'%' IDENTIFIED BY 'test#1234';
 # 刷新权限
 mysql / mariadb:
 FLUSH PRIVILEGES;
+
+# 清空用户所有权限
+REVOKE ALL PRIVILEGES ON *.* FROM 'user_name'@'%'
+REVOKE ALL PRIVILEGES ON *.* FROM 'user_name'@'localhost'
+(注意如果授权的时候是GRANT ALL PRIVILEGES ON xx.*,回收的时候也要对应REVOKE ALL PRIVILEGES ON xx.*，而不能是ON *.*)
+REVOKE ALL PRIVILEGES ON test.* FROM 'user_name'@'%'
 
 ```
 
