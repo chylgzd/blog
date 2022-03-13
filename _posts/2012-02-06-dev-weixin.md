@@ -12,6 +12,12 @@ comments: false
 
 #### 安装[frp](https://github.com/fatedier/frp)
 ```
+参考:
+https://github.com/fatedier/frp
+https://gofrp.org/docs/
+下载各种版本(支持arm系统):
+https://github.com/fatedier/frp/releases
+
 服务端frps.ini:
 [common]
 bind_port = 7000
@@ -21,11 +27,17 @@ subdomain_host = mytest.com
 dashboard_port = 7500
 dashboard_user = xxx
 dashboard_pwd = xxx
+#可选安全客户端链接方式使用token,避免暴露公网任意客户端都可链接
+authentication_method = token
+token = xxxxxx
 
 客户端frpc.ini:
 [common]
 server_addr = 服务端所在公网IP
 server_port = 7000
+#如果服务端设置了token鉴权则需要填写对应token值
+authentication_method = token
+token = xxxxxx
 
 [web01]
 type = http
@@ -51,10 +63,32 @@ server {
         proxy_set_header   X-Real-IP        $remote_addr;
         proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
     }
-
 }
+#如果域名申请太麻烦,可以在已有的域名配置文件里直接新增一个代理转发到7000端口,访问的时候带上/cqkf/即可)
+location /cqkf/ {
+  proxy_pass http://127.0.0.1:7000/;
+  proxy_set_header Host   $host;
+  proxy_set_header X-Real-IP  $remote_addr;
+  proxy_set_header X-Real-Port    $remote_port;
+  proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
+  proxy_connect_timeout 10s;
+  proxy_read_timeout 30s;
+  proxy_send_timeout 30s;
+  access_log off;
+}
+
 nginx -s reload
 启动服务端：./frps -c ./frps.ini
+或
+> 启动脚本:
+cd /xx/frp_0.39.1_linux_arm64
+nohup ./frps -c ./frps.ini > /dev/null 2>&1 &
+停止服务端：
+> 停止脚本:
+cd /xx/frp_0.39.1_linux_arm64
+kill `pgrep -f frps.ini` 2>/dev/null
+ps -ef |grep frps.ini | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/null 2>&1 
+exit 0
 
 客户端nginx配置vim /etc/nginx/conf.d/dev.mytest.com.conf:
 server {
