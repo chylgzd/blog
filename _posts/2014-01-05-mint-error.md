@@ -192,7 +192,7 @@ echo l > /proc/sysrq-trigger
 > echo > /var/log/btmp #清理lastb日志
 查看所有登录日志
 > last
-> echo > /var/log/wtmp
+> echo > /var/log/wtmp #清理last日志
 # 其它日志:
 最近登录记录 -> /var/log/lastlog
 

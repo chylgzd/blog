@@ -551,8 +551,9 @@ root> echo "Systems are wealth maintenance, 1 hour after the landing." > /etc/no
 
 ##### 禁止账户操作
 ```
-## 禁止用户访问某个目录或权限(设置ACL规则)
+## 禁止用户访问某个目录或权限(设置ACL规则,r读x执行w写-则表示没有任何权限)
 > setfacl -R -m u:readonly:- /bin
+> setfacl -R -m u:readonly:r /home/readonly/.ssh
 > cd /bin
 > setfacl -m u:readonly:- mv
 > setfacl -m u:readonly:- rm
@@ -571,11 +572,12 @@ root> echo "Systems are wealth maintenance, 1 hour after the landing." > /etc/no
 > setfacl -m u:readonly:- zip
 
 ## 禁止用户访问某个目录下的部分文件权限(禁止查看.yml和.sh脚本等重要配置)
-> find /usr/local -type f -regex ".*\.\(yml\|sh\|conf\|properties\)" | xargs setfacl -m u:readonly:-
+> find /usr/local -type f -regex ".*\.\(yml\|sh\|conf\|xml\|properties\)" | xargs setfacl -m u:readonly:-
 
-## 允许用户访问某个目录或权限(r读x执行w写)
+## 允许用户访问某个目录或权限(r读x执行w写-则表示没有任何权限)
 > setfacl -R -m u:readonly:rx /bin
 > setfacl -m u:readonly:rx /bin/vim
+> setfacl -R -m u:readonly:r /home/readonly/.ssh
 
 ## 查看某个目录或文件的ACL规则
 > getfacl /bin
