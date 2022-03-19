@@ -299,6 +299,126 @@ https://chrome.google.com/webstore/detail/dejavu/jopjeaiilkcibeohjdmejhoifenbnml
 输入http://localhost:9200获取下拉列表
 ```
 
+### 安装Grafana可视化
+
+```
+下载地址(可选择平台与版本oss为开源版)：
+https://grafana.com/grafana/download?edition=oss&platform=mac
+
+安装文档(如果是压缩包的可解压运行即可,选择对应下载的版本安装文档):
+https://grafana.com/docs/grafana/latest/installation/mac/
+#可修改默认登录用户名密码: 
+> vim ./conf/defaults.ini
+[security]
+admin_user = admin
+admin_password = admin
+
+default_theme = light #默认主题
+
+[snapshots] #快照安全设置
+external_enabled = false
+public_mode = false
+
+allow_embedding = true #设置可嵌入其它系统(分享快照或链接的时候跨域问题需要设置为true)
+[auth.anonymous]
+enabled = false #是否允许不需要登录查看(分享链接的时候默认要求登录查看,分享链接的参数带?kiosk&表示全屏)
+[auth.gitlab]#设置gitlab认证相关
+# 目录: 日志./data/log;插件./data/plugins
+mac下启动: 
+> ./bin/grafana-server
+
+clickhouse插件(注意不是grafana-clickhouse-datasource插件而是vertamedia-clickhouse-datasource):
+https://grafana.com/grafana/plugins/?type=datasource&utm_source=grafana_add_ds
+https://grafana.com/grafana/plugins/vertamedia-clickhouse-datasource/
+启动后打开设置-插件列表在线安装(推荐)：http://localhost:3000/plugins/vertamedia-clickhouse-datasource
+本地手动安装clickhouse插件(不推荐,插件安装完成需重启):
+> ./bin/grafana-cli plugins install vertamedia-clickhouse-datasource
+
+nginx配置(需修改[server]的domain和root_url配置,之后需重启):
+> vim ./conf/defaults.ini
+[server]
+#domain = localhost
+domain = xx.info
+#root_url = %(protocol)s://%(domain)s:%(http_port)s/
+root_url = %(protocol)s://%(domain)s/grafana/
+#serve_from_sub_path = false
+serve_from_sub_path = true
+> vim /etc/nginx/conf.d/xx.info.conf
+server {
+    listen       80;
+    server_name xx.info;
+    location /grafana/ { #访问首页需包含子路径 -> http://xx.info/grafana/login
+        proxy_pass http://localhost:3000/;
+        proxy_set_header Host   $host;
+        proxy_set_header X-Real-IP  $remote_addr;
+        proxy_set_header X-Real-Port    $remote_port;
+        proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+    }
+    ....
+}
+
+#[auth.jwt]认证
+https://grafana.com/docs/grafana/latest/auth/jwt/
+https://github.com/grafana/grafana/issues/8198
+> vim /data/jwks.json #(新建jwks文件内容可在线随机生成https://8gwifi.org/jwkfunctions.jsp选择HS256)
+{
+  "keys": [
+  {
+  "kty": "oct",
+  "kid": "74c2028b-148e-4dab-afbc-5cac3df340f2",
+  "k": "bTB3F0pzirzvyB1-pR86YugFVOg9P_IapSGbciTJN1M",
+  "alg": "HS256"
+  }]
+}
+> vim ./conf/defaults.ini
+allow_embedding = true
+[auth.jwt]
+enabled = true #启用auth.jwt模式
+header_name = X-JWT-HEADER
+email_claim = sub
+username_claim = sub
+jwk_set_file = /data/jwks.json #新建的jwks文件
+cache_ttl = 60m
+expected_claims = {}
+key_file =
+auto_sign_up = true #自动注册
+[auth.anonymous]
+enabled = true # 分享Embed HTML iframe时必须
+org_name = local_demo_org #这里注意组织名必须一致或提前建好
+> 配置完成后校验[auth.jwt]是否生效:
+打开https://jwt.io/#debugger-io右边写入
+HEADER内容:
+{
+  "alg": "HS256",
+  "typ": "JWT",
+  "kid": "74c2028b-148e-4dab-afbc-5cac3df340f2"
+}
+PAYLOAD:
+{
+  "sub": "demo" #用户名
+}
+VERIFY SIGNATURE:
+{
+密钥:bTB3F0pzirzvyB1-pR86YugFVOg9P_IapSGbciTJN1M
+}勾选secret base64 encoded(不勾选则error in cryptographic primitive)
+完成后把左边生成的JWT字符串放在postman里的分享Embed HTML的head里,key为[auth.jwt]的header_name
+发送请求即可在用户管理里看到用户列表新增了demo
+ post -> http://localhost:3000/grafana/d-solo/xxx
+
+#其它权限集成自有系统参考：
+https://blog.csdn.net/koppel/article/details/106269684
+https://grafana.com/docs/grafana/latest/http_api/dashboard_permissions/
+https://www.cnblogs.com/yinxy/p/14893595.html
+grafana代理:
+https://gitee.com/jscode/grafana-proxy?_from=gitee_search
+https://www.cnblogs.com/xiaoqi/p/grafana.html
+Grafana Oauth统一认证:
+https://blog.51cto.com/784687488/2701783
+```
+
 ### 安装 Redis
 
 ```
