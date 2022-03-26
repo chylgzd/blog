@@ -208,12 +208,16 @@ vim /etc/fstab
 ```
 修改mysql时区错误问题：
 宿主 > docker exec -it mysql5 bash #进入容器
+		> docker exec -u root -it superset bash #使用root进入容器
 容器 > mkdir -p /usr/share/zoneinfo/Asia && rm -rf /etc/localtime
 宿主 > docker cp /usr/share/zoneinfo/Asia/Shanghai 容器ID:/usr/share/zoneinfo/Asia
 容器 > cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 宿主 > docker restart mysql5
 
-docker run 参数：
+容器内访问宿主机端口(一般172.17.0.1代表宿主机,或ifconfig查看与宿主机的网桥ip)如访问宿主mysql:
+> telnet 172.17.0.1 3306
+
+运行容器docker run 参数：
 --name 容器别名
 --link 外部容器名：内定别名（如gitlab容器配置--link redis:redisio，其中redisio是内部定的，如果没有规定可以随意，而redis是另外的容器）
 -v 外部文件夹目录：内部目录（如tomcat容器配置-v /home/yourname/myapps:/usr/local/tomcat/webapps）
@@ -223,6 +227,9 @@ docker run --name nginx -p 80:80 -v /home/html:/usr/share/nginx/html -v /home/ng
 )
 -p 外部端口：内部端口（如redis容器配置 -p 6379:6379把内部端口映射出来）
 -d 镜像名：镜像版本号
+
+#临时运行并进入容器(运行完毕自动删除容器):
+> docker run --rm -it 容器名:版本号 sh
 
 启动/停止docker服务
 sudo service docker start
@@ -301,7 +308,17 @@ sudo docker push registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
 
 ```
 
-#### docker buildx
+#### 让本地docker可运行多平台系统的容器
+```
+1. 修改/etc/docker/daemon.json配置experimental:true(开启Docker Daemon的实验功能)后重启Docker
+2. 宿主> export DOCKER_CLI_EXPERIMENTAL=enabled(开启Docker Client的实验功能)
+3. 宿主> docker version (查看实验功能是否开启,Experimental值是否为true)
+4. 测试是否可运行arm64容器(本地为x64系统,未开启实验功能前无法运行不同平台系统容器)
+	宿主> docker pull --platform arm64 alpine:3.10
+	宿主> docker run --rm -it alpine:3.10 sh
+```
+
+#### docker buildx 打包成多平台系统容器
 ```
 下载(mac系统选择darwin-amd64): https://github.com/docker/buildx/releases/tag/v0.6.3
 
@@ -310,6 +327,8 @@ sudo docker push registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
 >  chmod 700 docker-buildx
 
 后续就可以参考 https://github.com/klo2k/nexus3-docker 编译不同平台
+或
+https://segmentfault.com/a/1190000021529637
 
 > docker buildx build --pull \
   --platform "linux/arm64" \
@@ -322,14 +341,14 @@ sudo docker push registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
 #### docker apt更新国内源
 
 ```
-容器 > cat /etc/apt/sources.list
+容器 > cat /etc/apt/sources.list 复制获取到的当前容器sources.list例如：
 deb http://deb.debian.org/debian stretch main
 deb http://security.debian.org/debian-security stretch/updates main
 deb http://deb.debian.org/debian stretch-updates main
 
 容器 > mv /etc/apt/sources.list /etc/apt/sources.list.bak #备份
 
-本机 > vim aliyun.list # 替换原来deb.debian.org为mirrors.aliyun.com即可
+本机 > vim aliyun.list # 替换原来deb.debian.org和security.debian.org为mirrors.aliyun.com例如：
 deb http://mirrors.aliyun.com/debian stretch main
 #deb http://security.debian.org/debian-security stretch/updates main
 deb http://mirrors.aliyun.com/debian stretch-updates main

@@ -299,7 +299,38 @@ https://chrome.google.com/webstore/detail/dejavu/jopjeaiilkcibeohjdmejhoifenbnml
 输入http://localhost:9200获取下拉列表
 ```
 
-### 安装Grafana可视化
+### 安装Superset数据可视化
+```
+https://superset.apache.org/docs/intro
+https://hub.docker.com/r/apache/superset
+
+> docker pull apache/superset
+> docker run -d -p 8080:8088 --name superset apache/superset
+> docker exec -it superset superset fab create-admin \
+               --username root \
+               --firstname Superset \
+               --lastname Admin \
+               --email admin@superset.com \
+               --password 123456
+> docker exec -it superset superset db upgrade
+> docker exec -it superset superset init
+#打开 http://localhost:8080/login/(root/123456)
+# 安装驱动包(先提升查看mint-docker更新为apt为国内源方便后续安装驱动)
+查看支持驱动列表: https://superset.apache.org/docs/databases/installing-database-drivers/
+宿主> docker exec --user root -it superset bash
+容器> pip install clickhouse-driver==0.2.0 && pip install clickhouse-sqlalchemy==0.1.6
+宿主> docker restart superset
+重启后新增数据源链接的时候就有clickhouse选项了
+SQLAlchemy URI(native协议或http):
+clickhouse+native://{username}:{password}@{hostname}:{port}/{database}[?options…]
+或
+clickhouse+http://{username}:{password}@{hostname}:{port}/{database}[?options…]
+如:
+clickhouse+native://root:123456@127.0.0.1:3322/db_test?secure=true
+```
+
+
+### 安装Grafana数据可视化
 
 ```
 下载地址(可选择平台与版本oss为开源版)：
