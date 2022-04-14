@@ -405,19 +405,32 @@ COMMIT
 
 ##### 转发端口
 ```
-(从本地访问公网跳板机内非公开的局域网机器)将本地3307端口代理目标内网192.168.0.2的3306端口通过跳板机x.x.x.x
-local > ssh -CfNg -L 3307:192.168.0.2:3306 root-remote-jump-public@x.x.x.x
+1.(正向代理-从本地访问公网跳板机内非公开的局域网机器)将本地3307端口代理目标内网192.168.0.2的3306端口通过跳板机x.x.x.x
+local > ssh -fCNgL 3307:192.168.0.2:3306 root-remote-jump-public@x.x.x.x
 local > telnet localhost 3307#从内网访问远程非公开的机器(等于访问远程3306端口)
+#nohup
+local > nohup ssh -fCNgL 3307:192.168.0.2:3306 xx@x.x.x.x >/dev/null 2>&1 &
+#autossh(-M参数指定监听端口可断线自动重连)
+local > yum install autossh
+local > nohup autossh -M 4010 -fCNgL 3307:192.168.0.2:3306 xx@x.x.x.x >/dev/null 2>&1 &
 
-(从公网机器穿墙访问本地内网机器)将本地3306端口转发到公网服务器的7788端口上
-local > ssh -fNTR 7788:localhost:3306 root-remote-public@x.x.x.x
+2.(反向代理-从公网机器穿墙访问本地内网机器)将本地3306端口转发到公网服务器的7788端口上
+local > ssh -fCNR 7788:localhost:3306 root-remote-public@x.x.x.x
 remote> lsof -i:7788 #查看是否绑定
 remote> telnet localhost 7788 #从公网服务访问内网(等于访问内网3306端口)
+
+ssh参数：
+-f 后台执行ssh指令
+-C 允许压缩数据
+-N 不执行远程指令
+-R 将远程主机(服务器)的某个端口转发到本地端指定机器的指定端口
+-L 将本地机(客户机)的某个端口转发到远端指定机器的指定端口
+-p 指定远程主机的端口
 
 (停止所有ssh进程)
 local> pgrep ssh | xargs kill
 
-将局域内网主机A的4000端口转发至公网主机B的80端口上
+(从公网机器穿墙访问本地内网机器)将局域内网主机A的4000端口映射至公网主机B的80端口上
 local-A>yum install autossh
 local-A>autossh -M 4010 -NR 80:localhost:4000 root-B@x.x.x.x (-p 22)
 '-M 4010':使用内网主机的4010端口监视SSH连接状态自动重连
