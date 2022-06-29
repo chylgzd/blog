@@ -22,6 +22,7 @@ port 6377
 protected-mode no（是否保护模式,如果需要远程机器访问则no）
 daemonize yes（是否后台进程启动）
 requirepass pwd123456（设置redis访问密码）
+database 16(修改db数目,默认16个)
 
 > ./src/redis-server ./redis.conf
 > ./src/redis-client -h 127.0.0.1 -p 6377
@@ -98,7 +99,7 @@ CONF="$REDIS_DIR/redis.conf"
 清除redis所有DB的数据：
 127.0.0.1:6379> FLUSHALL
 
-关闭所有客户端停止服务端
+关闭所有客户端停止服务端(源码安装的redis只能通过该方式停止redis服务)
 127.0.0.1:6379> SHUTDOWN
 
 ```

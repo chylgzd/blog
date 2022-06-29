@@ -526,13 +526,19 @@ mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpa
 > vim /etc/nginx/conf.d/nexus.xxx.com.conf
 server{
     listen      80;
+    #listen     443 ssl;
     server_name nexus.xxx.com;
+    client_max_body_size 15m;#某些包太大需要手动上传jar,设置客户端上传最大15M
+    proxy_read_timeout 30s;#pom文件拉取大包的时候最大超时30秒
     location /  {
-        index index.jsp index.html index.htm;
+        #index index.jsp index.html index.htm;
         proxy_pass http://127.0.0.1:9000;
         proxy_set_header   Host             $host;
         proxy_set_header   X-Real-IP        $remote_addr;
         proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
     }
 }
 默认密码: admin / admin123
@@ -684,6 +690,57 @@ mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.
       <username>nexus-deploy</username>
       <password>xxx</password>
     </server>
+```
+
+### maven 使用自定义JAVA工程创建动态模版
+```
+1,创建模版源工程自己的任意代码作为模版源source_demo如com.demo.xx,并修改pom.xml加入archetype插件
+source_demo> vim ./pom.xml
+<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-archetype-plugin</artifactId>
+				<version>3.2.1</version>
+				<configuration>
+					<propertyFile>archetype.properties</propertyFile>
+					<encoding>UTF-8</encoding>
+					<archetypeFilteredExtentions>java,xml,yml</archetypeFilteredExtentions>#动态替换哪些文件后缀
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+source_demo> vim ./archetype.properties (与源工程pom.xml同目录)
+package=com.demo #这里设置动态包名,将会把com.demo替换为变量
+applicationName=Demo #自定义变量名变量值,,动态替换所有Demo值为用户输入
+serviceName=service-demo #自定义变量名变量值,动态替换所有service-demo值为用户输入
+
+2,在源工程目录下生成generated-sources(源工程target目录)
+source_demo> mvn clean archetype:create-from-project
+source_demo/target/generated-sources/archetype/src/main/resources/META-INF/maven>vim archetype-metadata.xml
+删除以下默认设置的值,后续使用模版新建的时候默认才会让用户输入(不删除的话新建的时候得输入N重新填写才能覆盖默认值)
+<defaultValue>service-demo</defaultValue>
+<defaultValue>Demo</defaultValue>
+
+3,发布到本地或maven私有服务
+source_demo/target/generated-sources/archetype >mvn clean install (本地)
+source_demo/target/generated-sources/archetype >mvn clean deploy (远程)
+
+4,查看本地maven生成的模版gourpId和artifactId(一般为源工程artifactId加-archetype)
+${your_maven_repo_home} > cat ./archetype-catalog.xml
+
+5,新建一个测试工程并使用发布好的模版(xxx为源工程相关值)
+tmp> mvn archetype:generate -DarchetypeGroupId=xxx -DarchetypeArtifactId=xxx-archetype -DarchetypeVersion=xx -DarchetypeCatalog=local 
+参数说明:
+archetypeGroupId：模板groupId
+archetypeArtifactId：模板artifactId
+archetypeVersion：模板version
+interactiveMode：是否启用交互模式(默认是)
+archetypeCatalog：模版所在local:本地,remote:远程
+version：新建工程的version
+groupId：新建工程的groupId
+artifactId：新建工程的artifactId
+
 ```
 
 ### maven 其它语句相关

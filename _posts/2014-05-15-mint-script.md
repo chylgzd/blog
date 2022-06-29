@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Mint各种小脚本
-category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev,crontab,虚拟机,virtualbox,远程终端颜色]
+category: [Linux-Mint,自动更新hosts,清理arp,防御arp,脚本,Rinetd,端口转发,杀死进程,钉钉机器人,ss-libev,crontab,虚拟机,virtualbox,远程终端颜色,字体]
 comments: false
 ---
 
@@ -539,6 +539,7 @@ A> ssh user@localhost -p12222
 ## (可选,让只读用户执行命令)将允许执行的命令链接到$HOME/.bin目录
 ln -s /usr/bin/wc  /home/readonly/.bin/wc
 ln -s /usr/bin/tail  /home/readonly/.bin/tail
+ln -s /usr/bin/tailf  /home/readonly/.bin/tailf
 ln -s /bin/more  /home/readonly/.bin/more
 ln -s /bin/cat  /home/readonly/.bin/cat
 ln -s /bin/grep  /home/readonly/.bin/grep
@@ -582,6 +583,7 @@ root> echo "Systems are wealth maintenance, 1 hour after the landing." > /etc/no
 ```
 ## 禁止用户访问某个目录或权限(设置ACL规则,r读x执行w写-则表示没有任何权限)
 > setfacl -R -m u:readonly:- /bin
+> setfacl -R -m u:readonly:- /etc
 > setfacl -R -m u:readonly:r /home/readonly/.ssh
 > cd /bin
 > setfacl -m u:readonly:- mv
@@ -617,3 +619,23 @@ root> echo "Systems are wealth maintenance, 1 hour after the landing." > /etc/no
 > setfacl -b /bin/vim
 ```
 
+#### 字体相关
+
+##### JAVA使用黑体乱码问题
+```
+centos下安装黑体(需首先网上下载simhei.ttf文件)
+#查看中文
+> fc-list :lang=zh  (若不存在fc-list命令则需 yum install fontconfig)
+> mkfontscale (若不存在mkfontscale命令则需 yum install mkfontscale)
+#上传simhei.ttf字体到下面文件夹(没有则创建文件夹)
+> cd /usr/share/fonts/chinese
+#上传成功赋字体权限
+> chmod -R 700 /usr/share/fonts/chinese
+> mkfontscale
+> mkfontdir
+> fc-cache
+#查看是否已安装
+> fc-list :lang=zh
+#注意:字体安装成功后需要重启JAVA微服务
+
+```
