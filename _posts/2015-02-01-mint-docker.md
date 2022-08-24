@@ -251,6 +251,9 @@ restart相关参数值：
 docker images
 docker rmi 镜像ID
 
+查看容器默认entrypoint目录,对应Dockerfile的ENTRYPOINT
+docker run --rm -it --entrypoint sh 容器名:版本号
+
 删除所有空标签的镜像
 docker images|sed "1 d"|grep "<none>" |awk '{print $3}' |xargs docker rmi
 
@@ -371,11 +374,143 @@ FROM tomcat:latest
 ADD mywebapp.war /usr/local/tomcat/webapps/
 CMD ["catalina.sh", "run"]
 
+或使用alpine轻量级Linux
+FROM openjdk:8-jdk-alpine
+MAINTAINER gancy "mail@demo.org"
+ENV LANG C.UTF-8
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo 'Asia/Shanghai' >/etc/timezone
+
+# 设置alpine的镜像地址为阿里云的地址
+#国内镜像源
+#清华TUNA镜像源：https://mirror.tuna.tsinghua.edu.cn/alpine/
+#中科大镜像源：http://mirrors.ustc.edu.cn/alpine/
+#阿里云镜像源：http://mirrors.aliyun.com/alpine/
+RUN echo "https://mirrors.aliyun.com/alpine/v3.6/main/" > /etc/apk/repositories \
+    && apk update \
+    && apk add --no-cache bash \
+    # 安装mysql依赖(需在entrypoint.sh里调用apline-mysql-startup.sh初始化,alpine中的mysql就是mariadb)
+    && apk add --no-cache mariadb mariadb-client \
+    # 清空apk安装时产生的无用文件
+    && rm -rf /var/cache/apk/*
+
+#WORKDIR /usr/local/deploy
+ADD ./deploy /usr/local/deploy
+RUN chmod 700 /usr/local/deploy/**/*.sh /usr/local/deploy/*.sh
+RUN find /usr/local/deploy -name '.DS_Store' | xargs rm -rf
+ENTRYPOINT ["sh","-c","/usr/local/deploy/entrypoint.sh"]
+
+启动entrypoint.sh参考：(多个服务启动使用nohup，最终保持容器运行使用死循环或tail)
+>vim /usr/local/deploy/entrypoint.sh:
+SHELL_DIR=$(cd "$(dirname "$0")";pwd) #获取当前sh脚本真实目录
+cd $SHELL_DIR 
+sh ./apline-mysql-startup.sh #启动数据库
+sh ./nohop/springboot.sh #启动多个自定义JAVA服务
+#为了保持容器始终运行使用死循环
+#while [[ true ]]; do
+#    sleep 1
+#done
+#为了保持容器始终运行使用tail -f日志,该方式可以使docker logs xxx生效
+tail -f ./xxx/logs/test.log
+
 运行build命令打包镜像：
-docker build -t hello-test . 
+docker build -t hello-test:1.0 . 
 
 运行docker images即可查看到镜像已创建，运行容器：
 docker run  -p 8080:8080 hello-test -d hello-test:latest
+```
+
+#### Apline下启动mysql参考apline-mysql-startup.sh
+```sh
+#!/bin/sh
+
+# parameters
+MYSQL_ROOT_PWD=${MYSQL_ROOT_PWD:-"123456"}
+MYSQL_USER=${MYSQL_USER:-""}
+MYSQL_USER_PWD=${MYSQL_USER_PWD:-""}
+MYSQL_USER_DB=${MYSQL_USER_DB:-"mytest"}
+MYSQL_DATA_VOLUME=${MYSQL_DATA_VOLUME:-"/var/lib/mysql"}
+
+#stop
+set +m kill `pgrep -f mysql` 2>/dev/null
+
+#清理文件>rm -R /var/lib/mysql/*
+#清理后重新生成>mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+
+if [ ! -d "/run/mysqld" ]; then
+  mkdir -p /run/mysqld
+  chown -R mysql:mysql /run/mysqld
+fi
+
+#if [ -d /var/lib/mysql/mysql ]; then
+if [ -d $MYSQL_DATA_VOLUME/mysql ]; then
+  echo '[i] MySQL directory already present, skipping creation'
+else
+  rm -R /var/lib/mysql/*
+
+  echo "[i] MySQL data directory not found, creating initial DBs"
+
+  chown -R mysql:mysql $MYSQL_DATA_VOLUME
+  #chown -R mysql:mysql /var/lib/mysql
+
+  # init database
+  echo 'Initializing database'
+  #mysql_install_db --user=mysql > /dev/null
+  mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql > /dev/null
+  echo 'Database initialized'
+
+  echo "[i] MySql root password: $MYSQL_ROOT_PWD"
+
+  # create temp file
+  tfile=`mktemp`
+  if [ ! -f "$tfile" ]; then
+      return 1
+  fi
+
+  # save sql
+  echo "[i] Create temp file: $tfile"
+  cat << EOF > $tfile
+USE mysql;
+FLUSH PRIVILEGES;
+DELETE FROM mysql.user;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PWD' WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$MYSQL_ROOT_PWD' WITH GRANT OPTION;
+EOF
+
+
+  # Create new database
+  if [ "$MYSQL_USER_DB" != "" ]; then
+    echo "[i] Creating database: $MYSQL_USER_DB"
+    echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_USER_DB\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> $tfile
+
+    # set new User and Password
+    if [ "$MYSQL_USER" != "" ] && [ "$MYSQL_USER_PWD" != "" ]; then
+    echo "[i] Creating user: $MYSQL_USER with password $MYSQL_USER_PWD"
+    echo "GRANT ALL ON \`$MYSQL_USER_DB\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_USER_PWD';" >> $tfile
+    fi
+  else
+    # don`t need to create new database,Set new User to control all database.
+    if [ "$MYSQL_USER" != "" ] && [ "$MYSQL_USER_PWD" != "" ]; then
+    echo "[i] Creating user: $MYSQL_USER with password $MYSQL_USER_PWD"
+    echo "GRANT ALL ON *.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_USER_PWD';" >> $tfile
+    fi
+  fi
+
+  echo 'FLUSH PRIVILEGES;' >> $tfile
+
+  # run sql in tempfile
+  echo "[i] run tempfile: $tfile"
+  /usr/bin/mysqld --user=mysql --bootstrap --verbose=0 < $tfile
+  rm -f $tfile
+fi
+
+echo "[i] Sleeping 5 sec"
+sleep 5
+
+echo '[i] start running mysqld'
+#exec /usr/bin/mysqld --user=mysql --console
+nohup /usr/bin/mysqld --user=mysql > /dev/null 2>&1 &
+
 ```
 
 ### 用希云cSphere管理docker
