@@ -251,3 +251,20 @@ SELECT * FROM tmp
 
 ```
 
+### 错误异常相关
+
+```
+1.导入sql脚本时错误:
+宿主> mysql -uroot -p123 -Dtestdb < /structure.sql
+ERROR 1071 (42000) in file: '/structure.sql': Specified key was too long; max key length is 767 bytes
+解决：mysql单列索引被限制需启用innodb_large_prefix选项将约束项扩展至3072byte
+Mysql [testdb]> set global innodb_large_prefix = 1;
+Mysql [testdb]> show variables like 'innodb_large_prefix';//显示ON时已扩展
+或在导入structure.sql的头部里加入:
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+SET GLOBAL innodb_large_prefix=1; --启用
+DROP TABLE IF EXISTS `tb_test`;
+CREATE TABLE `tb_test` (......)
+```
+

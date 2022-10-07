@@ -574,6 +574,7 @@ server_name m1.demo.com
 配置1
 location /server-hello/ {
 	proxy_pass http://hello.com/ #.com后面以/结尾
+	proxy_set_header Host $proxy_host; #代理第三方域名时必须设置Host为proxy_host
 	...
 }
 配置2
