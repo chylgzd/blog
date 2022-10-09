@@ -33,18 +33,24 @@ https://jrsoftware.org/files/istrans/
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "测试软件"
-#define MyAppVersion "0.0.1.v"
+#define MyAppVersion "v0.0.1."
 #define MyAppPublisher "测试公司"
 #define MyAppURL "http://www.demo.com"
+; 打包的程序所在目录的执行文件(须在打包程序所在目录下)
 #define MyAppExeName "demo.exe"
 ; 定义实际安装到用户系统里的文件夹名
 #define InstallDirName "MyDemoDir"
-; 安装文件相关图标
+; 安装EXE文件的图标
 #define MySetupExeIcon "C:\demo\build\logo.ico"
-; 桌面快捷图标文件指向与demo.exe所在目录一致
+; 桌面快捷图标文件(须在打包程序所在目录下)
 #define DesktopIconFile "desktop.ico"
 ; 时间戳
 #define BuildTimeStr GetDateTimeString('yyyymmddhhnnss', '-', '')
+; 定义要打包的程序所在目录(存放demo.exe与desktop.ico等文件)
+#define MYAPPSOURCEDIR "C:\demo\app"
+; 定义编译输出(编译后的exe在out目录)
+#define BUILDTARGETNAME "demoInstall"
+#define BUILDTARGETDIR "C:\demo\build\out"
 ; 
 
 [Setup]
@@ -61,13 +67,13 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#InstallDirName}
 DisableDirPage=yes
 DisableProgramGroupPage=yes
-LicenseFile=LICENSE许可文件(中文注意使用ANSI编码)
-InfoBeforeFile=README安装前手册文本文件(中文注意使用ANSI编码)
-InfoAfterFile=README安装后手册文本文件(中文注意使用ANSI编码)
+LicenseFile={#MYAPPSOURCEDIR}\LICENSE.TXT
+InfoBeforeFile={#MYAPPSOURCEDIR}\README.txt
+InfoAfterFile=
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=编译后存储exe文件的输出目录
-OutputBaseFilename=安装EXE文件名.{#MyAppVersion}{#BuildTimeStr}.win64.setup
+OutputDir={#BUILDTARGETDIR}
+OutputBaseFilename={#BUILDTARGETNAME}.{#MyAppVersion}{#BuildTimeStr}.win64.setup
 SetupIconFile={#MySetupExeIcon}
 Compression=lzma
 SolidCompression=yes
@@ -83,8 +89,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 ; 打包安装相关主执行程序与其它相关目录
 [Files]
-Source: "C:\soft\knime\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\soft\knime\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MYAPPSOURCEDIR}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MYAPPSOURCEDIR}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
