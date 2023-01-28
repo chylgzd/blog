@@ -78,6 +78,7 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#InstallDirName}
+;禁止用户选择自定义目录,需要用户自己选择安装目录则写no或注释掉
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 LicenseFile={#MYAPPSOURCEDIR}\LICENSE.TXT
