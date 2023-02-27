@@ -532,6 +532,7 @@ A> ssh user@localhost -p12222
 > mkdir /home/readonly/.ssh (只允许ssh登录时需要)
 	> touch /home/readonly/.ssh/authorized_keys
 	> chown -R readonly:readonly /home/readonly/.ssh
+	> chown -R root. /home/readonly/.ssh/authorized_keys (不允许只读用户修改)
 ## root修改用户的shell配置文件
 > chown root. /home/readonly/.bash_profile 
 > chmod 755 /home/readonly/.bash_profile
@@ -582,7 +583,6 @@ root> echo "Systems are wealth maintenance, 1 hour after the landing." > /etc/no
 ##### 禁止账户操作
 ```
 ## 禁止用户访问某个目录或权限(设置ACL规则,r读x执行w写-则表示没有任何权限)
-> setfacl -R -m u:readonly:- /bin
 > setfacl -R -m u:readonly:- /etc
 > setfacl -R -m u:readonly:r /home/readonly/.ssh
 > cd /bin
@@ -603,7 +603,7 @@ root> echo "Systems are wealth maintenance, 1 hour after the landing." > /etc/no
 > setfacl -m u:readonly:- zip
 
 ## 禁止用户访问某个目录下的部分文件权限(禁止查看.yml和.sh脚本等重要配置)
-> find /usr/local -type f -regex ".*\.\(yml\|sh\|conf\|xml\|properties\)" | xargs setfacl -m u:readonly:-
+> find /usr/local -type f -regex ".*\.\(yml\|sh\|conf\|xml\|sql\|properties\)" | xargs setfacl -m u:readonly:-
 
 ## 允许用户访问某个目录或权限(r读x执行w写-则表示没有任何权限)
 > setfacl -R -m u:readonly:rx /bin

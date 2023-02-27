@@ -36,6 +36,25 @@ centos:
 
 ```
 
+#### TX云安装
+```
+清理旧的：
+> sudo yum remove docker docker-common docker-selinux docker-engine
+> sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+
+下载对应系统版本https://mirrors.cloud.tencent.com (容器相关docker-ce)
+centos:
+> wget -O /etc/yum.repos.d/docker-ce.repo https://mirrors.cloud.tencent.com/docker-ce/linux/centos/docker-ce.repo
+
+> sudo sed -i 's+download.docker.com+mirrors.cloud.tencent.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+
+> sudo yum makecache fast
+安装
+> sudo yum install docker-ce
+启动
+> sudo systemctl start docker
+```
+
 #### 旧版安装
 ```bash
 
