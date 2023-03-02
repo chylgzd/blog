@@ -272,14 +272,31 @@ sudo systemctl start/stop mytest.service
 ####  定时任务crontab脚本
 
 ```
-vim /etc/crontab
+比如每天晚上23:59分开始备份某个数据库文件夹并删除7天前的
+> vim /data/my/backup.sh
+cd /data/my/docker_data
+#要备份的目录
+TARGET_DIR=mariadb
+#删除7天前的(-mtime +7:修改时间超过7天的文件; -cmin -600: 600分钟内创建的文件)
+find . -name $TARGET_DIR'*.tar.gz' -type f -mtime +7 -exec rm -rf {} \;
+#根据当前时间生成文件名
+CURRENT_TIME=$(date +%Y%m%d%H%M%S)
+BACK_FILE_NAME=$TARGET_DIR'_test_'$CURRENT_TIME'.tar.gz'
 
-59 23 * * * root /xx/shell/test.sh
+echo '开始备份:'$BACK_FILE_NAME'......'
 
-/etc/rc.d/init.d/crond restart
+tar -zcf $BACK_FILE_NAME $TARGET_DIR
 
-crontab -l
-crontab -e
+echo '完成备份:'$BACK_FILE_NAME
+
+> chmod 700 /data/my/backup.sh
+
+> crontab -e 或 vim /etc/crontab
+59 23 * * * root /data/my/backup.sh (tailf /var/spool/mail/root即可查看backup.sh里echo打印信息)
+59 23 * * * root /data/my/backup.sh >/dev/null 2>&1 (不生成日志模式)
+
+> /etc/rc.d/init.d/crond restart (有些系统可能无需重启)
+> crontab -l 查看定时任务
 ```
 
 ####  切分日志文件脚本（配合crontab定时执行）
