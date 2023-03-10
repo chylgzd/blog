@@ -422,6 +422,28 @@ COMMIT
 
 ##### 转发端口
 ```
+本地 -> 跳板机(公网) <-局域网-> 数据库(Linux内网/无需连外网)
+场景：把与跳板机所在局域网的另一台内网机器192.168.0.11的3306端口映射到本地13306上(跳板机已设置了免密公钥登陆)
+本地> ssh -CfNg -L 13306:192.168.0.11:3306 readonly@跳板机公网IP
+此时直接访问本地13306端口即可打开远程数据库,但不稳定可能隔段时间会断开,使用autossh即可
+本地> nohup autossh -M 4015 -fCNgL 13306:192.168.0.11:3306 readonly@跳板机公网IP >/dev/null 2>&1 &
+
+本地 -> 跳板机(公网) <-非局域网-> 公司电脑或虚拟机(Linux内网/必须可连外网)
+场景：从本地家里登陆公司内网Linux电脑或虚拟机,把公司电脑22端口映射到跳板机的33891(跳板机已设置了免密公钥登陆)
+公司> ssh -fCNR 33891:localhost:22 readonly@跳板机公网IP
+本地> vim ~/.ssh/config
+Host test_company
+	HostName localhost
+	Port 33891
+	User root
+	ProxyCommand ssh readonly@跳板机公网IP -W %h:%p
+	PreferredAuthentications publickey (如果公司电脑设置了公钥访问)
+	IdentityFile ~/.ssh/demo/id_rsa (需把本地对应id_rsa.pub内容放在公司电脑authorized_keys里)
+本地> ssh test_company 即可登陆公司内网机器
+退出来后测试把本地tmp目录下test.tar.gz文件上传到公司机器的data目录下并重命名为demo.tar.gz(前提需要设置公钥免密)
+本地> scp /tmp/test.tar.gz test_company:/data/demo.tar.gz
+
+
 1.(正向代理-从本地访问公网跳板机内非公开的局域网机器)将本地3307端口代理目标内网192.168.0.2的3306端口通过跳板机x.x.x.x
 local > ssh -fCNgL 3307:192.168.0.2:3306 root-remote-jump-public@x.x.x.x
 local > telnet localhost 3307#从内网访问远程非公开的机器(等于访问远程3306端口)
@@ -491,15 +513,17 @@ Host tiaoban
 	Port 22
 	User u_tiaoban
 Host lan-ecs1
-	HostName 192.168.0.11 (内网IP)
+	HostName 192.168.0.11 (内网IP,该机器使用用户名密码登陆)
 	Port 22
 	User u_lan-ecs1
 	ProxyCommand ssh u_tiaoban@tiaoban -W %h:%p
 Host lan-ecs2
-	HostName 192.168.0.12 (内网IP)
+	HostName 192.168.0.12 (内网IP,该机器设置了必须公钥登陆)
 	Port 22
 	User u_lan-ecs2
-	ProxyCommand ssh u_tiaoban@tiaoban -W %h:%p
+	ProxyCommand ssh readonly@tiaoban -W %h:%p
+	PreferredAuthentications publickey
+	IdentityFile ~/.ssh/my/id_rsa
 	
 local > ssh lan-ecs1
 local > ssh lan-ecs2
