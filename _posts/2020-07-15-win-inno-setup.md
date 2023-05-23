@@ -84,8 +84,8 @@ DisableProgramGroupPage=yes
 LicenseFile={#MYAPPSOURCEDIR}\LICENSE.TXT
 InfoBeforeFile={#MYAPPSOURCEDIR}\README.txt
 InfoAfterFile=
-;安装模式权限提升lowest/admin,默认lowest,取消注释以在非管理安装模式下运行(当前用户)
-;PrivilegesRequired=lowest
+;安装模式权限提升lowest/admin,默认lowest(当前用户),取消注释以在管理安装模式下运行
+;PrivilegesRequired=admin
 OutputDir={#BUILDTARGETDIR}
 OutputBaseFilename={#BUILDTARGETNAME}.{#MyAppVersion}{#BuildTimeStr}.win64.setup
 SetupIconFile={#MySetupExeIcon}
@@ -94,7 +94,7 @@ Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 
-; 安装语言
+; 安装语言 (对应InnoSetup6\Languages\目录下,默认没有中文需要先下载到该目录)
 [Languages]
 Name: "chinese"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 
@@ -108,6 +108,8 @@ Source: "{#MYAPPSOURCEDIR}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignorevers
 ; 排除文件时加上Excludes,\开头表示只排除根目录,非\开头会排除所有子目录相匹;排除多个以逗号分隔如:\test,*.log,*.DS_Store,._*
 Source: "{#MYAPPSOURCEDIR}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs;Excludes: "\target,\project\.settings,*.log,*.DS_Store,._*"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+; 安装完成后根据当前机器信息动态修改配置文件里对应的设置(调用[Code]自定义函数AfterInstallUpdate)
+Source: "{#MYAPPSOURCEDIR}\demoConfig.ini"; DestDir: "{app}"; AfterInstall: AfterInstallUpdate
 
 [Icons]
 ; 默认使用exe图标方式
@@ -123,6 +125,77 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 [InstallDelete]
 Name: "{autopf}\{#InstallDirName}"; Type: filesandordirs
 
+; 自定义函数代码片段
+[Code]
+// 对话框使用(如果没有用到可去掉,具体参考InnoSetup6\Examples目录的CodeDll.iss示例)
+function MessageBox(hWnd: Integer; lpText, lpCaption: String; uType: Cardinal): Integer;
+external 'MessageBoxW@user32.dll stdcall';
+// 引入Windows系统API获取内存信息
+function GetPhysicallyInstalledSystemMemory(var TotalMemoryInKilobytes: Int64): Boolean;
+external 'GetPhysicallyInstalledSystemMemory@kernel32.dll stdcall setuponly';
+
+// -------定义函数过程代码(安装完后调用,通过上面Source指定的AfterInstall)-------
+procedure AfterInstallUpdate;
+var
+  ConfigIniPath: string;
+  FileContent: AnsiString;
+  FileContentString: string;
+  memorySize: Int64;
+begin
+  if GetPhysicallyInstalledSystemMemory(memorySize) then
+  begin
+    memorySize := memorySize div (2*1024);
+    // Log('打印:' + IntToStr(memorySize) + ' MB');
+  end;
+  if memorySize > 1000 then
+  begin
+    // 获取已解压的配置文件路径
+    ConfigIniPath := ExpandConstant('{app}\demoConfig.ini');
+    // 读取文件内容到FileContent
+    LoadStringFromFile(ConfigIniPath, FileContent);
+    // 文件的内容类型AnsiString转化为string
+    FileContentString := FileContent;
+    // 替换字符串
+    StringChange(FileContentString, '-Xmx1024m','-Xmx'+IntToStr(memorySize)+'m');
+    // 将替换后的内容写入原文件(False:覆盖,True:追加)
+    SaveStringToFile(ConfigIniPath, FileContentString ,False);
+  end;
+end;
+
+// -------简单的自定义安装页面代码-------
+var
+  CustomPage: TWizardPage;
+  Edit1: TNewEdit;
+function CustomPageOnNextButtonClick(Page: TWizardPage): Boolean;
+begin
+  { 在这里添加自定义的下一步操作 }
+  MsgBox('自定义下一步操作', mbInformation, MB_OK);
+end;
+
+procedure InitializeWizard();
+begin
+  { 创建自定义页面 }
+  CustomPage := CreateCustomPage(wpWelcome,'测试页', '这是一个自定义描述');
+  // 自定义下一步(去掉则走正常的下一步流程)
+  CustomPage.OnNextButtonClick := @CustomPageOnNextButtonClick;
+  { 在自定义页面上添加文本框 }
+  Edit1 := TNewEdit.Create(CustomPage);
+  Edit1.Parent := CustomPage.Surface;
+  Edit1.Left := ScaleX(10);
+  Edit1.Top := ScaleY(50);
+  Edit1.Width := ScaleX(200);
+end;
+
+// -------简单的启动初始化代码-------
+function InitializeSetup(): Boolean;
+var
+  hWnd: Integer;
+begin
+  // 在此写入安装文件启动时执行逻辑示例:
+  hWnd := StrToInt(ExpandConstant('{wizardhwnd}'));
+  MessageBox(hWnd, '开始安装...', '提示信息', MB_OK);
+  Result := True;
+end;
 
 ; 操作注册表
 ;[registry]
