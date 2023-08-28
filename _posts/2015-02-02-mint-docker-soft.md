@@ -266,6 +266,15 @@ curl -XPUT 'http://localhost:9200/test1/table1/1' -d '{ "first":"dewmobile", "la
 访问：
 http://localhost:9200/test1/table1/1
 
+修改密码(依赖X-Pack):
+宿主> docker exec -it elasticsearch /bin/bash
+es > ./bin/elasticsearch-setup-passwords -h #查看密码帮助
+es > ./bin/elasticsearch-setup-passwords auto #随机密码
+忘记密码(依赖X-Pack):
+es > ./bin/elasticsearch-users useradd root -r superuser #创建一个临时超管root
+es> #用临时超管权限去修改用户elastic的密码
+curl -XPUT -u root:123456 http://localhost:9200/_xpack/security/user/elastic/_password -H "Content-Type: application/json" -d ' { "password": "123456" }'
+
 ```
 
 ### 安装 Elasticsearch5.x
@@ -274,6 +283,9 @@ http://localhost:9200/test1/table1/1
 https://www.elastic.co/guide/en/elasticsearch/reference/5.6/install-elasticsearch.html
 
 docker pull docker.elastic.co/elasticsearch/elasticsearch:5.6.9
+(废弃，推荐6.8.12
+docker pull docker.elastic.co/elasticsearch/elasticsearch:6.8.12
+)
 
 /data/es5/config/elasticsearch.yml：
 # cluster.name
@@ -288,8 +300,13 @@ http.cors.allow-origin: "*"
 http.cors.enabled: true
 http.cors.allow-headers : X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
 http.cors.allow-credentials: true
+# auto_create_index
+action.auto_create_index: false
 
 docker run --name es5 -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -v /data/es5/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -d docker.elastic.co/elasticsearch/elasticsearch:5.6.9
+
+推荐6.8.12 (参考https://www.elastic.co/guide/en/elasticsearch/reference/6.8/docker.html#docker)
+docker run --name es6 -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -v /opt/docker/es6/data:/usr/share/elasticsearch/data -v /opt/docker/es6/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml  -d docker.elastic.co/elasticsearch/elasticsearch:6.8.12
 
 The Missing Web UI for Elasticsearch：
 https://github.com/appbaseio/dejaVu
@@ -297,6 +314,85 @@ installed as a chrome extension：
 https://chrome.google.com/webstore/detail/dejavu/jopjeaiilkcibeohjdmejhoifenbnmlh
 
 输入http://localhost:9200获取下拉列表
+
+安装中文分词插件(注意ES版本号必须对应 https://github.com/medcl/elasticsearch-analysis-ik):
+宿主> docker exec -it es6.8.12 /bin/bash
+es6> ./bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v6.8.12/elasticsearch-analysis-ik-6.8.12.zip
+es6> cd plugins/ #检查是否安装,当然上面安装成功后会也会提示 -> Installed analysis-ik
+es6> exit # 退出
+宿主> docker restart es6.8.12 #重启
+最后spring框架(不需要依赖ik)里设置实体表(@Document)需要分词的字段(analyzer指定存储时分词,searchAnalyzer指定搜索时对参数的分词)如:
+@Field(name="remark",type=FieldType.Text,analyzer="ik_max_word",searchAnalyzer="ik_smart")
+private String remark;
+补充:
+ik_max_word和ik_smart的区别:
+ik_max_word: 会将文本做最细粒度的拆分,会穷尽各种可能的组合,适合Term Query;
+ik_smart: 会做最粗粒度的拆分适合Phrase查询
+词库自动热更新(索引需要用户重建,已建立的索引不会使用新词):
+宿主> vim nginx/www/elasticsearch_dic.txt
+测试动态新增自定义词库
+es6> vi /usr/share/elasticsearch/config/analysis-ik/IKAnalyzer.cfg.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+        <comment>IK Analyzer Dic</comment>
+        <entry key="ext_dict"></entry>
+        <entry key="ext_stopwords"></entry>
+        <entry key="remote_ext_dict">http://宿主ip:nginx端口(80)/elasticsearch_dic.txt</entry>
+        <entry key="remote_ext_stopwords"></entry>
+</properties>
+
+es6> exit # 退出重启 
+宿主> docker restart es6.8.12 #重启
+宿主> docker logs es6 | grep 词典 #查看是否出现:加载词典完毕...
+注意: 词库为热更新，但是索引需要用户自己重建,旧的索引不会使用新词,可能导致的问题：
+比如'海尔冰箱',原数据以海尔和冰箱拆分,搜索'海尔冰箱'时候可以匹配到'海尔'或'冰箱',
+但如果新增热词把'海尔冰箱'作为一个词立即更新了,这时候索引不更新,可能导致'海尔冰箱'无法搜出结果,
+因为搜索分词时'海尔冰箱'是个最小Term了,但索引里依旧是旧的'海尔'和'冰箱'
+
+API相关:
+
+分词测试：
+POST xxx_index/_analyze
+{
+	"field": "属性",
+	"text": "测试文本"
+}
+
+修改配置：
+PUT _cluster/settings
+{
+  "persistent": {
+    "action.auto_create_index": "false" 
+  }
+}
+
+创建索引(reindex时先设置action.auto_create_index为false防止自动创建空的mappings然后复制已有配置):
+PUT 
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "xx_entity": {
+      "properties": {
+        "age": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "long"
+        }
+        "remark": {
+          "type": "text",
+          "analyzer": "ik_max_word",
+          "search_analyzer": "ik_smart"
+        }
+      }
+    }
+  }
+}
+
 ```
 
 ### 安装Superset数据可视化

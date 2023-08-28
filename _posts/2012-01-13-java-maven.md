@@ -474,7 +474,7 @@ mvn deploy:deploy-file -DgroupId=com.google -DartifactId=gson -Dversion=1.2 -Dpa
   <mirrors>
     <mirror>
       <id>nexus-xxxx</id>
-      <mirrorOf>*</mirrorOf>
+      <mirrorOf>*,!jitpack.io</mirrorOf><!-- 排除jitpack.io   -->
       <name>xxxx</name>
       <url>http://127.0.0.1:8081/repository/maven-public/</url>
     </mirror>
@@ -609,7 +609,7 @@ mvn clean -Dmaven.test.skip=true -DuseUniqueVersions=false deploy
 
 ```
 1.手动方式：
-mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=ojdbc14.jar -DpomFile=pom.xml -Durl=http://xxmaven.com/repository/test -DrepositoryId=nexus-xxxx
+mvn deploy:deploy-file --settings 可选指定配置/conf/settings.xml -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.5.0 -Dpackaging=jar -Dfile=ojdbc14.jar -DpomFile=pom.xml -Durl=http://xxmaven.com/repository/maven-releases -DrepositoryId=nexus-xxxx(settings.xml里资源ID)
 
 2.工程pom.xml文件自动部署，修改完pom.xml和settings.xml配置文件后,
     如果要发布到快照仓库(默认版本号带SNAPSHOT即可自动识别)：clean -Dmaven.test.skip=true deploy
