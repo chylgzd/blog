@@ -300,8 +300,6 @@ http.cors.allow-origin: "*"
 http.cors.enabled: true
 http.cors.allow-headers : X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
 http.cors.allow-credentials: true
-# auto_create_index
-action.auto_create_index: false
 
 docker run --name es5 -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -v /data/es5/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml -d docker.elastic.co/elasticsearch/elasticsearch:5.6.9
 
@@ -358,6 +356,10 @@ POST xxx_index/_analyze
 	"field": "属性",
 	"text": "测试文本"
 }
+如:
+curl -H "Content-Type:application/json" -X POST -d '{"text":"测试文本","analyzer":"ik_smart"}' "http://localhost:19200/_analyze"
+或
+curl -H "Content-Type:application/json" -X POST -d '{"text":"测试文本","field":"title"}' "http://localhost:19200/xxx_index/_analyze"
 
 修改配置：
 PUT _cluster/settings
@@ -392,6 +394,9 @@ PUT
     }
   }
 }
+
+删除索引
+curl -H "Content-Type:application/json" -X DELETE "http://localhost:19200/xxx_index"
 
 ```
 

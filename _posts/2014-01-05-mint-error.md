@@ -279,4 +279,16 @@ ssh-keygen -R "xxip"
 ```
 
 
+#### kex_exchange_identification: read: Connection reset by peer
+```
+服务器排查SSH服务是否正常:
+root > systemctl restart sshd #重启看问题
+root > systemctl status sshd.service
+root > journalctl -xe
+如果出现下面表示ssh_host_ecdsa_key文件权限过大有风险:
+Permissions 0620 for '/etc/ssh/ssh_host_ecdsa_key' are too open
+调整该文件权限为0600即可
+root > chmod 0600 /etc/ssh/ssh_host_ecdsa_key
+root > systemctl restart sshd #重启
+```
 
