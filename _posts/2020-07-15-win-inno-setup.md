@@ -26,9 +26,10 @@ https://jrsoftware.org/files/istrans/
 4, 启动 -> File -> new 进入引导式打包编程流程 -> 编译即可(会编译成exe并输出到引导配置时的output参数目录) -> 运行exe
 ```
 
-### 提升exe执行文件权限
+### 提升exe执行文件权限并替换ico图标
 ```
-使用 Resource Hacker将程序中的Manifest项新增requireAdministrator然后编译后每次运行exe则会要求管理员权限
+1.如何提升exe执行文件权限:
+使用Resource Hacker拖入要修改的exe文件,将程序中的Manifest项新增requireAdministrator然后编译后每次运行exe则会要求管理员权限
 <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
 <security>
 <requestedPrivileges>
@@ -36,6 +37,10 @@ https://jrsoftware.org/files/istrans/
 </requestedPrivileges>
 </security>
 </trustInfo>
+
+2.如何替换ico图标:
+打开Resource Hacker,拖入要修改的exe文件,选择Icon Group后右键(或菜单Action)点击Replace Icon替换图标即可
+
 ```
 
 ### 例子test.iss
@@ -56,12 +61,12 @@ https://jrsoftware.org/files/istrans/
 #define MySetupExeIcon "C:\demo\build\logo.ico"
 ; 桌面快捷图标文件(须在打包程序所在目录下)
 #define DesktopIconFile "desktop.ico"
-; 时间戳(使用ISCC.exe外部调用传入相同参数名BuildTimeStr时这里需要注释掉)
+; 时间戳(注意:使用ISCC.exe外部调用传入相同参数名BuildTimeStr时这里需要注释掉)
 #define BuildTimeStr GetDateTimeString('yyyymmddhhnnss', '-', '')
 ; 定义要打包的程序所在目录(存放demo.exe与desktop.ico等文件)
 #define MYAPPSOURCEDIR "C:\demo\app"
 ; 定义编译输出(编译后的exe在out目录)
-#define BUILDTARGETNAME "demoInstall"
+#define BUILDTARGETNAME "demo.enterprise"
 #define BUILDTARGETDIR "C:\demo\build\out"
 ; 
 
@@ -125,7 +130,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 [InstallDelete]
 Name: "{autopf}\{#InstallDirName}"; Type: filesandordirs
 
-; 自定义函数代码片段
+; 自定义函数代码片段(可选)
 [Code]
 // 对话框使用(如果没有用到可去掉,具体参考InnoSetup6\Examples目录的CodeDll.iss示例)
 function MessageBox(hWnd: Integer; lpText, lpCaption: String; uType: Cardinal): Integer;
@@ -197,7 +202,7 @@ begin
   Result := True;
 end;
 
-; 操作注册表
+; 操作注册表(可选)
 ;[registry]
 Root:HKLM;Subkey:SOFTWARE\Microsoft\Windows\CurrentVersion\Run;ValueType: string; ValueName:DEMO;ValueData:{app}\demo.exe;Flags: uninsdeletevalue
 ```
@@ -206,22 +211,29 @@ Root:HKLM;Subkey:SOFTWARE\Microsoft\Windows\CurrentVersion\Run;ValueType: string
 ```
 @echo off
 
+:: 清空要打包的软件目录下的一些文件或文件夹(可选)
+RMDIR C:\soft\test\configuration\.settings /S /Q
+DEL C:\soft\test\configuration\*.log /A /F /Q
+DEL C:\soft\test\configuration\org.test.core\*.* /A /F /Q
+DEL C:\soft\test\configuration\org.eclipse.update\history\*.* /A /F /Q
+
+:: 基于时间的版本 ———————————————
 set CURRENT_TIME=%date:~0,4%%date:~5,2%%date:~8,2%%time:~0,2%%time:~3,2%%time:~6,2%
 set "CURRENT_TIME=%CURRENT_TIME: =0%"
 
 ::打包前替换一些配置值———————————————
-REM 使用固定值替换(版本11 -> 版本12)...
+:: 替换固定值(比如把TEST_FREE_PRODUCT替换为TEST_ENTERPRISE_PRODUCT)...
 @ECHO start replace...
 set filepath=C:\test\config.ini
 (for /f "delims=" %%a in (%filepath%) do (
 set "str=%%a"
 setlocal enabledelayedexpansion
-set "str=!str:版本11=版本12!"
+set "str=!str:TEST_FREE_PRODUCT=TEST_ENTERPRISE_PRODUCT!"
 echo,!str!
 endlocal
 ))>#
 MOVE /y # %filepath%
-REM 使用正则替换当前时间戳的值...
+:: 替换变量=后的动态值(比如变量名为'当前时间戳',使用正则替换为上面设置的CURRENT_TIME)
 set filenumcmd='findstr /r /n "当前时间戳=*" %filepath%'
 for /F "delims=:" %%i in (%filenumcmd%) do (
 	set serverlineNum=%%i
