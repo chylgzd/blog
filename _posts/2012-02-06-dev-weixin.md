@@ -42,12 +42,12 @@ token = xxxxxx
 [web01]
 type = http
 local_ip = 127.0.0.1
-local_port = 80
+local_port = 80 (也可直接为本地服务端口,80则指向本地nginx代理)
 use_encryption = false
 use_compression = true
 http_user = 
 http_pwd = 
-subdomain = dev
+subdomain = dev (区分多个客户端连接,一个子域名转发到一个内网机器)
 
 服务端nginx配置vim /etc/nginx/conf.d/dev.mytest.com.conf:
 server {
@@ -90,7 +90,7 @@ kill `pgrep -f frps.ini` 2>/dev/null
 ps -ef |grep frps.ini | grep -v grep |awk '{print $2}'|xargs kill -9 1>/dev/null 2>&1 
 exit 0
 
-客户端nginx配置vim /etc/nginx/conf.d/dev.mytest.com.conf:
+如果前面客户端frpc.ini里的local_port设置为80的nginx配置vim /etc/nginx/conf.d/dev.mytest.com.conf:
 server {
     listen       80;
     server_name dev.mytest.com;
