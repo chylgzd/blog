@@ -554,6 +554,14 @@ RepositoriesManage repositories：
 把私有仓库加入maven-public组
 repositories -> repositories 选择maven-public然后Group设置添加私有正式/快照仓库
 
+清理快照仓库保持最多2个
+System -> Tasks
+新建clear-mvn
+勾选Task enabled
+Repository选择xxx-snapshot
+Minimum snapshot count:2
+Snapshot retention (days):1
+Task frequency: Daily,02/23/2023,02:30
 ```
 
 #### 创建角色权限
