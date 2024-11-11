@@ -1098,11 +1098,24 @@ server {
 拉取镜像：Docker拉取失败时尝试添加 https://docker.1ms.run 到 registry-mirrors
 > docker pull risingwavelabs/risingwave:v2.1.0-rc.2
 
-启动：默认映射5691为web端口,映射4566为数据库端口
-> docker run --privileged --name risingwave -p 4566:4566 -p 5691:5691 risingwavelabs/risingwave:v2.1.0-rc.2 playground
+启动：默认映射5691为web端口,映射4566为数据库端口(注意须使用single_node而非playground模式参数)
+> docker run --privileged --name risingwave -p 4566:4566 -p 5691:5691 risingwavelabs/risingwave:v2.1.0-rc.2 single_node
 
 访问web服务: http://localhost:5691/
-访问数据库: psql -h localhost -p 4566 -d dev -U root
+访问数据库并测试是否正常（参考：https://zh-cn.risingwave.com/docs/current/get-started/）: 
+> psql -h localhost -p 4566 -d dev -U root
+> CREATE TABLE website_visits (
+  timestamp timestamp with time zone,
+  user_id varchar,
+  page_id varchar,
+  action varchar
+);//如果返回CREATE_TABLE说明创建表正常
+> INSERT INTO website_visits (timestamp, user_id, page_id, action) VALUES
+  ('2023-06-13T10:00:00Z', 'user1', 'page1', 'view'),
+  ('2023-06-13T10:01:00Z', 'user2', 'page2', 'view'),
+  ('2023-06-13T10:02:00Z', 'user3', 'page3', 'view'),
+  ('2023-06-13T10:03:00Z', 'user4', 'page1', 'view'),
+  ('2023-06-13T10:04:00Z', 'user5', 'page2', 'view');//返回INSERT 0 5说明写入数据正常
 ```
 
 ### 相关问题
