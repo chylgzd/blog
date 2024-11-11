@@ -1091,3 +1091,23 @@ server {
 }
 
 ```
+
+### 安装RisingWave（流式处理对标Flink）
+
+```
+拉取镜像：Docker拉取失败时尝试添加 https://docker.1ms.run 到 registry-mirrors
+> docker pull risingwavelabs/risingwave:v2.1.0-rc.2
+
+启动：默认映射5691为web端口,映射4566为数据库端口
+> docker run --privileged --name risingwave -p 4566:4566 -p 5691:5691 risingwavelabs/risingwave:v2.1.0-rc.2 playground
+
+访问web服务: http://localhost:5691/
+访问数据库: psql -h localhost -p 4566 -d dev -U root
+```
+
+### 相关问题
+
+```
+1.OS can't spawn worker thread: Operation not permitted (os error 1)
+解决: 可能是权限问题,尝试docker run 后加上 --privileged
+```
