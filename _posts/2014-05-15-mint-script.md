@@ -619,6 +619,12 @@ root     pts/1    101.100.22.102  11:14    2:14m  0.01s  0.01s -bash
 # 只允许root登录
 root> touch /etc/nologin 
 root> echo "Systems are wealth maintenance, 1 hour after the landing." > /etc/nologin
+
+# 查看权限-查看所有用户对某个目录的ACL权限
+> getfacl -R /yourpath/demo | grep -E "user::|user:" | awk -F: '{print $1,$2,$3,$4}' | sort | uniq
+
+# 查看用户权限-查看某个用户对某个目录的ACL权限,在搜索中加上具体用户名,如查找dev_xx账户:
+> getfacl -R /yourpath/demo | grep -E "user::|user:dev_xx:" | awk -F: '{print $1,$2,$3,$4}' | sort | uniq
 ```
 
 ##### 禁止账户操作
