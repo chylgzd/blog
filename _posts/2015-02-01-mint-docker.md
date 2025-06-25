@@ -328,6 +328,10 @@ sudo docker login --username=用户名 registry.cn-xxx.aliyuncs.com
 sudo docker tag [ImageId] registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
 sudo docker push registry.cn-xxx.aliyuncs.com/xxx/mysql:[镜像版本号]
 
+导出本地镜像到磁盘：
+docker save mysql:1.0 > mysql_docker.tar.gz
+加载本地磁盘镜像：
+docker load < mysql_docker.tar.gz
 ```
 
 #### 让本地docker可运行多平台系统的容器
