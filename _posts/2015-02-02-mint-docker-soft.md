@@ -1133,6 +1133,23 @@ server {
 3. 点击开始制作
 ```
 
+### 安装NocoDB（将数据库转换为智能表格）
+
+```
+参考：https://github.com/nocodb/nocodb
+拉取镜像:
+> docker pull nocodb/nocodb:latest
+
+方式1：SQLite(快速推荐)
+> docker run --name nocodb --security-opt seccomp=unconfined -v /your_docker_file_sharing/nocodb:/usr/app/data/ -p 8080:8080 -d nocodb/nocodb:latest
+
+方式2：PG(未测试)
+> docker run --name nocodb --security-opt seccomp=unconfined -v /your_docker_file_sharing/nocodb:/usr/app/data/ -p 8080:8080 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" -e NC_AUTH_JWT_SECRET="xxx" -d nocodb/nocodb:latest
+
+访问web服务：http://localhost:8080/
+第一次需本地注册超管(离线随意): nocodb@github.com / nocodb123456
+```
+
 ### 相关问题
 
 ```
