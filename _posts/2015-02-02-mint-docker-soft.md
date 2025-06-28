@@ -1118,6 +1118,21 @@ server {
   ('2023-06-13T10:04:00Z', 'user5', 'page2', 'view');//返回INSERT 0 5说明写入数据正常
 ```
 
+### 安装HivisionIDPhotos（证件照图片处理）
+
+```
+参考：https://github.com/Zeyi-Lin/HivisionIDPhotos
+拉取镜像: 注意使用docker desktop时版本需要 >= 4.1.1
+> docker pull linzeyi/hivision_idphotos
+> docker run --privileged --name idphotos -p 7860:7860 -d linzeyi/hivision_idphotos
+
+访问web服务: http://localhost:7860/
+换照片底色流程：
+1. 核心参数 > 证件照尺寸选项 > 选中只换底
+2. 背景颜色 > 选择所需颜色
+3. 点击开始制作
+```
+
 ### 相关问题
 
 ```
