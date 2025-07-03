@@ -63,6 +63,9 @@ docker run --name mysql55 -p 3306:3306 -v /etc/localtime:/etc/localtime:ro -e MY
 
 
 如果镜像是mysql8以上版本：
+docker pull swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mysql:8.0.30
+docker pull registry.cn-shanghai.aliyuncs.com/nocobase/mysql:8
+
 > docker run --name mysql8 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -d mysql:8.0.17
 > docker exec -it mysql8 bash
 > mysql -uroot -p123456
@@ -126,6 +129,8 @@ http://localhost:8081
 ```
 下载 postgres：
 docker pull postgres:latest
+或
+docker pull registry.cn-shanghai.aliyuncs.com/nocobase/postgres:16
 
 启动 postgres：
 docker run --name postgresql -p 5432:5432 -v /data/dev/docker_data/postgresql/data:/var/lib/postgresql/data -e POSTGRES_USER=root -e POSTGRES_PASSWORD=123456 -d postgres
@@ -680,8 +685,7 @@ docker run --name gitlab11.8.3 -d \
 	--volume /data/dev/docker_data/gitlab/data:/home/git/data \
     sameersbn/gitlab:11.8.3
 
-用浏览器访问：
-http://localhost:10080
+用浏览器访问：http://localhost:10080
 
 会提示修改密码，比如设置为12345678，然后登陆，默认账户是：admin@example.com或设置的GITLAB_ROOT_EMAIL
 
@@ -1126,11 +1130,32 @@ server {
 > docker pull linzeyi/hivision_idphotos
 > docker run --privileged --name idphotos -p 7860:7860 -d linzeyi/hivision_idphotos
 
-访问web服务: http://localhost:7860/
+打开web地址: http://localhost:7860/
 换照片底色流程：
 1. 核心参数 > 证件照尺寸选项 > 选中只换底
 2. 背景颜色 > 选择所需颜色
 3. 点击开始制作
+```
+
+### 安装NocoBase（低代码/无代码开发平台）
+
+```
+参考:
+https://docs-cn.nocobase.com
+https://github.com/nocobase/nocobase
+
+拉取依赖数据库镜像(若本地已有postgres>=16或mariadb>=11或mysql>=8.0.17则可忽略该步骤):
+> docker pull swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mysql:8.0.30
+> docker run --name mysql8 -p 3307:3306 -e MYSQL_ROOT_PASSWORD=123456 -d swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mysql:8.0.30
+> 创建nocobase数据库供后续DB_DATABASE参数使用
+
+拉取nocobase镜像:
+> docker pull registry.cn-shanghai.aliyuncs.com/nocobase/nocobase:1.7.19
+> docker run --name nocobase --security-opt seccomp=unconfined --link mysql8:dkdbhost -v /your_docker_file_sharing/nocobase:/app/nocobase/storage -e DB_DIALECT=mysql -e DB_HOST=dkdbhost -e DB_PORT=3306 -e DB_DATABASE=nocobase -e DB_USER=root -e DB_PASSWORD=123456 -e DB_UNDERSCORED=true -e TZ=Asia/Shanghai -p 13000:80 -d registry.cn-shanghai.aliyuncs.com/nocobase/nocobase:1.7.19
+(说明:--link mysql8:dkdbhost链接外部mysql8数据库容器并指向内部变量dkdbhost供DB_HOST参数使用)
+
+打开web地址: http://localhost:13000
+默认账号和密码: admin@nocobase.com / admin123
 ```
 
 ### 安装NocoDB（将数据库转换为智能表格）
@@ -1146,7 +1171,7 @@ server {
 方式2：PG(未测试)
 > docker run --name nocodb --security-opt seccomp=unconfined -v /your_docker_file_sharing/nocodb:/usr/app/data/ -p 8080:8080 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" -e NC_AUTH_JWT_SECRET="xxx" -d nocodb/nocodb:latest
 
-访问web服务：http://localhost:8080/
+打开web地址：http://localhost:8080/
 第一次需本地注册超管(离线随意): nocodb@github.com / nocodb123456
 ```
 
