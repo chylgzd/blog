@@ -320,6 +320,23 @@ fi
 exit 0
 ```
 
+####  Linux系统下制作U盘启动多镜像系统
+
+```
+更多参考：https://www.ventoy.net/cn/download.html
+下载ventoy-1.1.07-linux.tar.gz
+
+> cd ./ventoy-1.1.07/
+> sudo ./VentoyGUI.x86_64
+> 选择U盘路径后将自动安装ventory启动引导系统到U盘中
+> 复制多个系统镜像文件xxx.iso(eg win.iso或linux.iso)到 /U盘/Ventoy/ 目录下即可(cp /xx/xxx.iso /U盘/Ventoy/)
+> 在需要安装系统的电脑从U盘启动选择对应系统或格式化磁盘
+
+注意BIOS模式: uefi/legacy(参考https://www.ventoy.net/cn/doc_mbr_vs_gpt.html)
+uefi: 一般对应x64系统/GPT磁盘格式化/
+legacy: 一般对应x32系统/MBR磁盘格式化/
+```
+
 ####  LinuxMint下安装虚拟机virtualbox
 
 ```
