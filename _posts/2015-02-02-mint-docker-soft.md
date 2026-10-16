@@ -1175,6 +1175,194 @@ https://github.com/nocobase/nocobase
 第一次需本地注册超管(离线随意): nocodb@github.com / nocodb123456
 ```
 
+### 安装OpenCode（AI智能助手Agent）
+
+#### 准备环境
+```
+1.在docker可访问的目录下新建open_code及其子目录workspace如：
+/opt/docker/open_code
+/opt/docker/open_code/workspace
+
+2.手动构建干净的可供opencode运行的基础镜像
+> cd /tmp
+> touch Dockerfile.clean
+FROM alpine:3.24.1
+
+ARG BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
+ENV BUN_RUNTIME_TRANSPILER_CACHE_PATH=${BUN_RUNTIME_TRANSPILER_CACHE_PATH}
+RUN apk add --no-cache libgcc libstdc++ ripgrep
+
+ENTRYPOINT ["opencode"]
+> docker build -f Dockerfile.clean -t opencode-alpine:3.24.1 .
+> docker images
+opencode-alpine 3.24.1 15.5MB
+
+3.手动下载opencode的musl版本可执行文件如:opencode-linux-x64-musl.tar.gz
+v1版本:https://github.com/anomalyco/opencode/releases
+v2版本:https://opencode.ai/v2/docs
+
+4.把解压后的opencode可执行文件移到/opt/docker/open_code/下并重命名:
+v1版本的名: opencode1-linux-x64-musl
+v2版本的名: opencode2-linux-x64-musl
+
+5.按下面不同版本的启动脚本启动(不要多版本同时启动):
+启动v1 > ~/bin/opencode.sh web
+启动v2 > ~/bin/opencode2.sh web
+
+6.打开浏览器http://localhost:4097
+按启动提示的输入相关，v2需手动点击使用密码方式即可
+```
+
+#### 启动脚本v1版本opencode.sh
+```
+OPENCODE_REPOSITORY="opencode-alpine:3.24.1"
+CONTAINER_NAME="opencode1-web"
+OPENCODE_HOME="/opt/docker/open_code"
+OPENCODE_WORKSPACE="$OPENCODE_HOME/workspace"
+OPENCODE_SYS_USER="root"
+OPENCODE_BIN="$OPENCODE_HOME/opencode1-linux-x64-musl"
+OPENCODE_WEB_PORT="4097"
+OPENCODE_PASSWORD="1236547"
+
+# 1. 检测Docker服务是否运行
+if ! docker info > /dev/null 2>&1; then
+    echo "Docker服务未启动，正在启动Docker..."
+    open -a Docker
+    echo "等待Docker引擎启动中，请稍候..."
+    # 循环等待docker就绪
+    while ! docker info > /dev/null 2>&1; do
+        sleep 5
+    done
+    echo "Docker服务启动完成!"
+else
+    echo "Docker服务已在运行"
+fi
+
+if [ $# -eq 1 ] && [ "$1" = "web" ];then
+  echo "===========使用永久WEB模式==========="
+  # 2. 检测容器是否存在
+  if ! docker ps -a --filter "name=^/${CONTAINER_NAME}$" | grep -q "${CONTAINER_NAME}"; then
+      echo "容器[${CONTAINER_NAME}]不存在，开始创建并启动容器..."
+      #用户名opencode / OPENCODE_PASSWORD
+      docker run -d --name $CONTAINER_NAME -p $OPENCODE_WEB_PORT:4096 \
+        -v $OPENCODE_BIN:/usr/local/bin/opencode \
+        -e OPENCODE_SERVER_PASSWORD=$OPENCODE_PASSWORD \
+        -e PATH="/root/.local/bin:$PATH" \
+        -v $OPENCODE_WORKSPACE:/workspace \
+        -v "$OPENCODE_HOME/.opencode":"/$OPENCODE_SYS_USER/.opencode" \
+        -v "$OPENCODE_HOME/.config":"/$OPENCODE_SYS_USER/.config" \
+        -v "$OPENCODE_HOME/.local":"/$OPENCODE_SYS_USER/.local" \
+        -w /workspace \
+        "$OPENCODE_REPOSITORY" \
+        web --hostname 0.0.0.0 --port 4096
+      echo "容器[${CONTAINER_NAME}]创建完成并已启动!"
+  else
+      echo "容器[${CONTAINER_NAME}]已存在，检测运行状态..."
+      # 3. 容器存在，判断是否正在运行
+      if ! docker ps --filter "name=^/${CONTAINER_NAME}$" | grep -q "${CONTAINER_NAME}"; then
+          echo "容器[${CONTAINER_NAME}]已停止，正在启动容器..."
+          docker start ${CONTAINER_NAME}
+          echo "容器[${CONTAINER_NAME}]启动成功!"
+      else
+          echo "容器[${CONTAINER_NAME}]已在运行中!"
+      fi
+  fi
+  echo "访问: http://localhost:$OPENCODE_WEB_PORT \nopencode/$OPENCODE_PASSWORD"
+else
+  if docker ps --filter "name=^/${CONTAINER_NAME}$" | grep -q "${CONTAINER_NAME}"; then
+    echo "已启动并运行容器[${CONTAINER_NAME}]，无法同时使用WEB模式和TUI模式!"
+    echo "访问: http://localhost:$OPENCODE_WEB_PORT \nopencode/$OPENCODE_PASSWORD"
+  else
+    echo "===========使用一次性TUI模式==========="
+    #一次性
+    docker run -it --rm \
+      -v $OPENCODE_BIN:/usr/local/bin/opencode \
+      -e PATH="/root/.local/bin:$PATH" \
+      -v $OPENCODE_WORKSPACE:/workspace \
+      -v "$OPENCODE_HOME/.opencode":"/$OPENCODE_SYS_USER/.opencode" \
+      -v "$OPENCODE_HOME/.config":"/$OPENCODE_SYS_USER/.config" \
+      -v "$OPENCODE_HOME/.local":"/$OPENCODE_SYS_USER/.local" \
+      -w /workspace \
+      "$OPENCODE_REPOSITORY"
+  fi
+fi
+```
+
+#### 启动脚本v2版本opencode2.sh
+```
+OPENCODE_REPOSITORY="opencode-alpine:3.24.1"
+CONTAINER_NAME="opencode2-web"
+OPENCODE_HOME="/opt/docker/open_code"
+OPENCODE_WORKSPACE="$OPENCODE_HOME/workspace"
+OPENCODE_SYS_USER="root"
+OPENCODE_BIN="$OPENCODE_HOME/opencode2-linux-x64-musl"
+OPENCODE_WEB_PORT="4097"
+OPENCODE_PASSWORD="1236547"
+
+# 1. 检测Docker服务是否运行
+if ! docker info > /dev/null 2>&1; then
+    echo "Docker服务未启动，正在启动Docker..."
+    open -a Docker
+    echo "等待Docker引擎启动中，请稍候..."
+    # 循环等待docker就绪
+    while ! docker info > /dev/null 2>&1; do
+        sleep 5
+    done
+    echo "Docker服务启动完成!"
+else
+    echo "Docker服务已在运行"
+fi
+
+if [ $# -eq 1 ] && [ "$1" = "web" ];then
+  echo "===========使用永久WEB模式==========="
+  # 2. 检测容器是否存在
+  if ! docker ps -a --filter "name=^/${CONTAINER_NAME}$" | grep -q "${CONTAINER_NAME}"; then
+      echo "容器[${CONTAINER_NAME}]不存在，开始创建并启动容器..."
+      #用户名opencode / OPENCODE_PASSWORD
+      docker run -d --name $CONTAINER_NAME -p $OPENCODE_WEB_PORT:4096 \
+        -v $OPENCODE_BIN:/usr/local/bin/opencode \
+        -e OPENCODE_SERVER_PASSWORD=$OPENCODE_PASSWORD \
+        -e PATH="/root/.local/bin:$PATH" \
+        -v $OPENCODE_WORKSPACE:/workspace \
+        -v "$OPENCODE_HOME/.opencode":"/$OPENCODE_SYS_USER/.opencode" \
+        -v "$OPENCODE_HOME/.config":"/$OPENCODE_SYS_USER/.config" \
+        -v "$OPENCODE_HOME/.local":"/$OPENCODE_SYS_USER/.local" \
+        -w /workspace \
+        "$OPENCODE_REPOSITORY" \
+        serve --hostname 0.0.0.0 --port 4096
+      echo "容器[${CONTAINER_NAME}]创建完成并已启动!"
+  else
+      echo "容器[${CONTAINER_NAME}]已存在，检测运行状态..."
+      # 3. 容器存在，判断是否正在运行
+      if ! docker ps --filter "name=^/${CONTAINER_NAME}$" | grep -q "${CONTAINER_NAME}"; then
+          echo "容器[${CONTAINER_NAME}]已停止，正在启动容器..."
+          docker start ${CONTAINER_NAME}
+          echo "容器[${CONTAINER_NAME}]启动成功!"
+      else
+          echo "容器[${CONTAINER_NAME}]已在运行中!"
+      fi
+  fi
+  echo "访问: http://localhost:$OPENCODE_WEB_PORT \nopencode/$OPENCODE_PASSWORD"
+else
+  if docker ps --filter "name=^/${CONTAINER_NAME}$" | grep -q "${CONTAINER_NAME}"; then
+    echo "已启动并运行容器[${CONTAINER_NAME}]，无法同时使用WEB模式和TUI模式!"
+    echo "访问: http://localhost:$OPENCODE_WEB_PORT \nopencode/$OPENCODE_PASSWORD"
+  else
+    echo "===========使用一次性TUI模式==========="
+    #一次性
+    docker run -it --rm \
+      -v $OPENCODE_BIN:/usr/local/bin/opencode \
+      -e PATH="/root/.local/bin:$PATH" \
+      -v $OPENCODE_WORKSPACE:/workspace \
+      -v "$OPENCODE_HOME/.opencode":"/$OPENCODE_SYS_USER/.opencode" \
+      -v "$OPENCODE_HOME/.config":"/$OPENCODE_SYS_USER/.config" \
+      -v "$OPENCODE_HOME/.local":"/$OPENCODE_SYS_USER/.local" \
+      -w /workspace \
+      "$OPENCODE_REPOSITORY"
+  fi
+fi
+```
+
 ### 相关问题
 
 ```

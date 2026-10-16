@@ -270,6 +270,10 @@ restart相关参数值：
 docker images
 docker rmi 镜像ID
 
+查看镜像原Dockerfile基础版本(前提是你知道该系统是什么才有对应的可执行文件/etc/alpine-release)
+docker run --rm --entrypoint cat 镜像ID /etc/alpine-release
+打印结果：3.24.1(表示原Dockerfile的基础系统FROM alpine:3.24.1)
+
 查看容器默认entrypoint目录,对应Dockerfile的ENTRYPOINT
 docker run --rm -it --entrypoint sh 容器名:版本号
 
