@@ -1190,8 +1190,13 @@ FROM alpine:3.24.1
 
 ARG BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
 ENV BUN_RUNTIME_TRANSPILER_CACHE_PATH=${BUN_RUNTIME_TRANSPILER_CACHE_PATH}
-RUN apk add --no-cache libgcc libstdc++ ripgrep
 
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \ 
+	apk add --no-cache tzdata libgcc libstdc++ ripgrep python3 curl wget
+	
+#其它构建所用的非必须包:git build-base cmake
+RUN cat /proc/sys/kernel/random/uuid | tr -d '-' > /etc/machine-id
+ENV TZ=Asia/Shanghai
 ENTRYPOINT ["opencode"]
 > docker build -f Dockerfile.clean -t opencode-alpine:3.24.1 .
 > docker images
@@ -1223,6 +1228,8 @@ OPENCODE_SYS_USER="root"
 OPENCODE_BIN="$OPENCODE_HOME/opencode1-linux-x64-musl"
 OPENCODE_WEB_PORT="4097"
 OPENCODE_PASSWORD="1236547"
+SYSTEM_PATH="/$OPENCODE_SYS_USER/.local/bin:$PATH"
+#SYSTEM_PATH="/$OPENCODE_SYS_USER/.local/bin:/$OPENCODE_SYS_USER/.local/nodejs/bin:$PATH"
 
 # 1. 检测Docker服务是否运行
 if ! docker info > /dev/null 2>&1; then
@@ -1247,11 +1254,12 @@ if [ $# -eq 1 ] && [ "$1" = "web" ];then
       docker run -d --name $CONTAINER_NAME -p $OPENCODE_WEB_PORT:4096 \
         -v $OPENCODE_BIN:/usr/local/bin/opencode \
         -e OPENCODE_SERVER_PASSWORD=$OPENCODE_PASSWORD \
-        -e PATH="/root/.local/bin:$PATH" \
+        -e PATH="$SYSTEM_PATH" \
         -v $OPENCODE_WORKSPACE:/workspace \
         -v "$OPENCODE_HOME/.opencode":"/$OPENCODE_SYS_USER/.opencode" \
         -v "$OPENCODE_HOME/.config":"/$OPENCODE_SYS_USER/.config" \
         -v "$OPENCODE_HOME/.local":"/$OPENCODE_SYS_USER/.local" \
+        -v "$OPENCODE_HOME/.agents":"/$OPENCODE_SYS_USER/.agents" \
         -w /workspace \
         "$OPENCODE_REPOSITORY" \
         web --hostname 0.0.0.0 --port 4096
@@ -1277,11 +1285,12 @@ else
     #一次性
     docker run -it --rm \
       -v $OPENCODE_BIN:/usr/local/bin/opencode \
-      -e PATH="/root/.local/bin:$PATH" \
+      -e PATH="$SYSTEM_PATH" \
       -v $OPENCODE_WORKSPACE:/workspace \
       -v "$OPENCODE_HOME/.opencode":"/$OPENCODE_SYS_USER/.opencode" \
       -v "$OPENCODE_HOME/.config":"/$OPENCODE_SYS_USER/.config" \
       -v "$OPENCODE_HOME/.local":"/$OPENCODE_SYS_USER/.local" \
+      -v "$OPENCODE_HOME/.agents":"/$OPENCODE_SYS_USER/.agents" \
       -w /workspace \
       "$OPENCODE_REPOSITORY"
   fi
@@ -1298,6 +1307,8 @@ OPENCODE_SYS_USER="root"
 OPENCODE_BIN="$OPENCODE_HOME/opencode2-linux-x64-musl"
 OPENCODE_WEB_PORT="4097"
 OPENCODE_PASSWORD="1236547"
+SYSTEM_PATH="/$OPENCODE_SYS_USER/.local/bin:$PATH"
+#SYSTEM_PATH="/$OPENCODE_SYS_USER/.local/bin:/$OPENCODE_SYS_USER/.local/nodejs/bin:/$OPENCODE_SYS_USER/.local/python3/bin:/$OPENCODE_SYS_USER/.local/jdk/bin:$PATH"
 
 # 1. 检测Docker服务是否运行
 if ! docker info > /dev/null 2>&1; then
@@ -1321,12 +1332,13 @@ if [ $# -eq 1 ] && [ "$1" = "web" ];then
       #用户名opencode / OPENCODE_PASSWORD
       docker run -d --name $CONTAINER_NAME -p $OPENCODE_WEB_PORT:4096 \
         -v $OPENCODE_BIN:/usr/local/bin/opencode \
-        -e OPENCODE_SERVER_PASSWORD=$OPENCODE_PASSWORD \
+        -e PATH="$SYSTEM_PATH" \
         -e PATH="/root/.local/bin:$PATH" \
         -v $OPENCODE_WORKSPACE:/workspace \
         -v "$OPENCODE_HOME/.opencode":"/$OPENCODE_SYS_USER/.opencode" \
         -v "$OPENCODE_HOME/.config":"/$OPENCODE_SYS_USER/.config" \
         -v "$OPENCODE_HOME/.local":"/$OPENCODE_SYS_USER/.local" \
+        -v "$OPENCODE_HOME/.agents":"/$OPENCODE_SYS_USER/.agents" \
         -w /workspace \
         "$OPENCODE_REPOSITORY" \
         serve --hostname 0.0.0.0 --port 4096
@@ -1352,11 +1364,12 @@ else
     #一次性
     docker run -it --rm \
       -v $OPENCODE_BIN:/usr/local/bin/opencode \
-      -e PATH="/root/.local/bin:$PATH" \
+      -e PATH="$SYSTEM_PATH" \
       -v $OPENCODE_WORKSPACE:/workspace \
       -v "$OPENCODE_HOME/.opencode":"/$OPENCODE_SYS_USER/.opencode" \
       -v "$OPENCODE_HOME/.config":"/$OPENCODE_SYS_USER/.config" \
       -v "$OPENCODE_HOME/.local":"/$OPENCODE_SYS_USER/.local" \
+      -v "$OPENCODE_HOME/.agents":"/$OPENCODE_SYS_USER/.agents" \
       -w /workspace \
       "$OPENCODE_REPOSITORY"
   fi
